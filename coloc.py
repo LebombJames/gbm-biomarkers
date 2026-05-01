@@ -88,8 +88,8 @@ def svs_read(path: str, header: dict) -> ants.ANTsImage:
     # Level 0 is the original, each subsequent level is downsampled more
     level = 1
 
-    if level >= len(slide.level_dimensions):
-        raise Exception("The selected level does not exist in this .svs file.")
+    if level >= len(slide.level_downsamples):
+        raise Exception(f"Selected level not available, select from {list(range(len(slide.level_downsamples)))}")
 
     target_dims = slide.level_dimensions[level]
     print(target_dims)
