@@ -1,10 +1,9 @@
 from __future__ import annotations
-from typing import TypedDict, TYPE_CHECKING, Literal, TypeVar
+from typing import TypedDict, Literal, TypeVar
 
 import ants
 import numpy as np
 import numpy.typing as npt
-from pathlib import Path
 from coloc import LazyAntsImage
 
 
@@ -40,7 +39,7 @@ class HistParams(TypedDict):
     """Localise the slices against slide 3 before colocalising against the MRI"""
     fixed_image: int
     """Array index of the fixed image if localising within hist slides. Slide 3 by default"""
-    slide_3: Literal[0] | Literal[1] | Literal[2] | Literal[3]
+    slide_3: Literal[0, 1, 2, 3]
     """
     0: Include slide 3 in no colocalisations (slide 1 and 2 against MRI slide 1, 4 and 5 against MRI slide 2)
 
@@ -50,11 +49,9 @@ class HistParams(TypedDict):
 
     3: Include slide 3 in both colocalisations (slide 1, 2, and 3 against MRI slide 1, and 3, 4, and 5 against MRI slide 2)
     """
-    downsample_svs: int
-    """SVS files are massive, so we should downsample them."""
 
 
 T = TypeVar("T", LazyAntsImage, RegistrationDict, ants.ANTsImage)
-AllocatedHists = dict[Literal["mri_1"] | Literal["mri_2"], list[T]]
+AllocatedHists = dict[Literal["mri_1", "mri_2"], list[T]]
 
 HistSlices = tuple[LazyAntsImage, LazyAntsImage, LazyAntsImage, LazyAntsImage, LazyAntsImage]
