@@ -1,0 +1,7 @@
+antspyx==0.0.7
+nibabel==5.4.2
+numpy==2.4.6
+Pillow==12.2.0
+simpleitk==2.5.5
+skimage==0.0
+tiffslide==2.5.1
