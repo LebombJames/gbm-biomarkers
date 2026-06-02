@@ -57,11 +57,7 @@ class LazyAntsImage:
 
         print(f"Loading image: {self.path}")
 
-        return (
-            self.svs_read(self.path)
-            if self.is_hist
-            else ants.image_read(str(self.path), *self.args, **self.kwargs)
-        )
+        return self.svs_read(self.path) if self.is_hist else ants.image_read(str(self.path), *self.args, **self.kwargs)
 
     @property
     def is_hist(self):
@@ -203,7 +199,7 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
     else:
         hist_allocation = allocate_hists(list(hist_params["slices"]), hist_params["slide_3_mode"])
 
-    #print({key: [v["img"].path.name for v in val] for key, val in hist_allocation.items()})
+    # print({key: [v["img"].path.name for v in val] for key, val in hist_allocation.items()})
 
     base_out_path = Path("out" / reg_params["out_prefix"])
 
@@ -236,8 +232,8 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
             create_checkerboard(
                 mri_processed,
                 registered["warpedmovout"],
+                out_path=hist_out_path,
                 squares=(8, 8),
-                filename=ensure_path_exists(hist_out_path / f"checkerboard.tif"),
             )
 
 
@@ -434,12 +430,14 @@ def brain_extraction_threshold(mri: LazyAntsImage | ANTsImage) -> ANTsImage:
 
     return ants.new_image_like(img, brain)
 
+
 def create_checkerboard(
-    img1: ANTsImage, img2: ANTsImage, squares: tuple[int, int] | None = None, filename: str | None = None
+    img1: ANTsImage, img2: ANTsImage, out_path: Path, squares: tuple[int, int] | None = None
 ) -> sitk.Image:
     img = sitk.CheckerBoard(ants.to_sitk(img1), ants.to_sitk(img2), squares)
-    ants.from_sitk(img).to_file(filename)
+    ants.from_sitk(img).to_file(ensure_path_exists(out_path / "checkerboard.tif"))
     return img
+
 
 def ensure_path_exists(str_or_path: str | Path) -> str:
     """Mainly for use with ants filenames. Recursively create any necessary folders for the inputted filename."""
