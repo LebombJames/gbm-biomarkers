@@ -7,6 +7,7 @@ from ants import ANTsImage
 import numpy as np
 import numpy.typing as npt
 from coloc import LazyAntsImage
+from pathlib import Path
 
 
 class RegistrationDict(TypedDict):
@@ -53,12 +54,27 @@ class HistParams(TypedDict):
     """
 
 
+class RegParams(TypedDict):
+    type_of_transform: str
+    out_prefix: Path
+
+
 class HistSlicesDict(TypedDict):
     img: LazyAntsImage
     rotation: int
-    """A clockwise rotation in degrees to apply to the image."""
+    """A clockwise rotation in degrees to apply to the image.
+
+    Note: Rotation is applied *after* rotation.
+    """
     maps: NotRequired[dict[str, ANTsImage]]
     """Maps computed using `img`, which will be registeted using the same transform calculated on `img`."""
+    crop: NotRequired[tuple[tuple[int, int], tuple[int, int]]]
+    """
+    The indicies to crop the image with. `((X1, Y1), (X2, Y2))`, where `X1` and `Y1` are
+    the minimum indicies to crop at, and `X2` and `Y2` are the maximum to crop at.
+
+    Note: Cropping is applied *before* rotation.
+    """
 
 
 T = TypeVar("T", LazyAntsImage, RegistrationDict, ANTsImage, HistSlicesDict)
