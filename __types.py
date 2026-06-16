@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import TypedDict, Literal, TypeVar, Any
 from typing_extensions import NotRequired
 
-import ants
 from ants import ANTsImage
 import numpy as np
 import numpy.typing as npt
 from coloc import LazyAntsImage
 from pathlib import Path
+from skimage.measure._regionprops import RegionProperties
 
 
 class RegistrationDict(TypedDict):
@@ -33,30 +33,38 @@ class AntsHeader(TypedDict):
 
 
 class DicomParams(TypedDict):
-    slices: dict[Literal["mri_1", "mri_2"], LazyAntsImage]
+    slices: dict[str, MRISliceDict]
+    volume: ANTsImage
+
+
+class MRISliceDict(TypedDict):
+    img: LazyAntsImage
+    index: int
+    """
+    Index within the volume that this slice occupies, starting from 0 (so if it's `MRIm08.dcm`, the `index` is `7`)
+    """
 
 
 class HistParams(TypedDict):
-    slices: tuple[HistSlicesDict, HistSlicesDict, HistSlicesDict, HistSlicesDict, HistSlicesDict]
+    slices: list[HistSlicesDict]
     loc_within: bool
     """Localise the slices against slide 3 before colocalising against the MRI"""
     fixed_image: int
     """Array index of the fixed image if localising within hist slides. Slide 3 by default"""
-    slide_3_mode: Literal[0, 1, 2, 3]
-    """
-    0: Include slide 3 in no colocalisations (slide 1 and 2 against MRI slide 1, 4 and 5 against MRI slide 2)
+    # use_masks: bool
+    # """
+    # Threshold slides before registration. A `mask` value can be provided in each slice, otherwise a mask will be calculated using ants.
+    # """
+    greyscale_type: GreyscaleModes
 
-    1: Colocalise slide 1, 2, and 3 against MRI slide 1, and 3, 4, and 5 against MRI slide 2
 
-    2: Colocalise slide 1 and 2 against MRI slide 1, and 3, 4, 5 against MRI slide 2
-
-    3: Include slide 3 in both colocalisations (slide 1, 2, and 3 against MRI slide 1, and 3, 4, and 5 against MRI slide 2)
-    """
+GreyscaleModes = Literal["mean", "red", "green", "blue", "h", "e", "h&e"] | set[Literal["red", "green", "blue"]]
 
 
 class RegParams(TypedDict):
     type_of_transform: str
     out_prefix: Path
+    use_initial_transform: bool
 
 
 class HistSlicesDict(TypedDict):
@@ -64,9 +72,9 @@ class HistSlicesDict(TypedDict):
     rotation: int
     """A clockwise rotation in degrees to apply to the image.
 
-    Note: Rotation is applied *after* rotation.
+    Note: Rotation is applied *after* cropping.
     """
-    maps: NotRequired[dict[str, ANTsImage]]
+    maps: dict[str, ANTsImage]
     """Maps computed using `img`, which will be registeted using the same transform calculated on `img`."""
     crop: NotRequired[tuple[tuple[int, int], tuple[int, int]]]
     """
@@ -75,13 +83,29 @@ class HistSlicesDict(TypedDict):
 
     Note: Cropping is applied *before* rotation.
     """
+    register_to: str | list[str]
+    "The key of the MRI slide to register this histology to. If a list of strings, the histology will be allocated to all corresponding MRI slides. See `DicomParams`."
 
 
 T = TypeVar("T", LazyAntsImage, RegistrationDict, ANTsImage, HistSlicesDict)
-AllocatedHists = dict[Literal["mri_1", "mri_2"], list[T]]
+AllocatedHists = dict[str, list[T]]
 """Group hist slides based on which MRI slice they should be registered to. The values may be either an Ants Image of the moving image registered, or the dict returned from the registration, which allows for the transformation function to be accessed."""
 
-HistSlices = tuple[LazyAntsImage, LazyAntsImage, LazyAntsImage, LazyAntsImage, LazyAntsImage]
+HistSlices = list[LazyAntsImage]
+
+
+class ScriptDict(TypedDict):
+    script_name: str
+    args: list[str]
+
+
+ROI = tuple[tuple[int, int], tuple[int, int]]
+
+
+class ThresholdDict(TypedDict):
+    img: ANTsImage
+    mask: ANTsImage
+    region: RegionProperties
 
 
 class ImageInfo(TypedDict):
@@ -90,3 +114,8 @@ class ImageInfo(TypedDict):
     spacing: tuple[int | float, ...]
     origin: tuple[int | float, ...]
     direction: np.ndarray[tuple[int, int], np.dtype[Any]]
+
+
+class ProcessedMap(TypedDict):
+    img: ANTsImage
+    mutual_info: float
