@@ -1,0 +1,19 @@
+[project]
+name = "mycoloc_lebombjames"
+version = "0.0.1"
+authors = [
+  { name="Sam Marine", email="sam.marine418@gmail.com" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/LebombJames/gbm-biomarkers"
+Issues = "https://github.com/LebombJames/gbm-biomarkers/issues"
