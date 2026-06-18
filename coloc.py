@@ -6,6 +6,7 @@ import tiffslide
 import numpy as np
 from PIL import Image
 import SimpleITK as sitk
+from tqdm import tqdm
 
 from skimage.filters import threshold_otsu
 from skimage import morphology, measure
@@ -26,6 +27,11 @@ import os
 from collections import defaultdict
 import math
 import asyncio
+from functools import reduce
+import itertools
+import operator
+import copy
+import pprint
 
 from __types import *
 
@@ -37,6 +43,9 @@ ants.config.set_ants_deterministic(True, seed)
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
 np.random.seed(seed)
 random.seed(seed)
+
+DEBUG = False
+"""If True, prints various diagnostic details to console, and creates intermediate images between steps."""
 
 
 class LazyAntsImage:
@@ -73,7 +82,7 @@ class LazyAntsImage:
             # this whole function is even called.
             raise ValueError("No path was provided, and there was no provided image to fallback to.")
 
-        print(f"Loading image: {self.path}")
+        progress.write(f"Loading image: {self.path}")
 
         return self.svs_read(self.path) if self.is_hist else ants.image_read(str(self.path), *self.args, **self.kwargs)
 
@@ -231,7 +240,7 @@ class LazyAntsImage:
             project / "scripts" / f"{script_name}.groovy",
         ]
 
-        print([str(arg) for arg in args])
+        # print([str(arg) for arg in args])
 
         try:
             subprocess.run(
@@ -246,78 +255,6 @@ class LazyAntsImage:
             raise Exception from e
 
         img: ANTsImage = ants.image_read(str(out_path))  # type: ignore
-        self.maps[script_name] = img
-        return img
-
-    async def run_qupath_script_async(self, script_name: str, out_filename: str = "") -> ANTsImage:
-        """
-        Run a qupath script that takes this image as an argument (`args[0]` in the groovy script), and creates an output image, which we read.
-        """
-        if self.path is None:
-            raise ValueError("Scripts not available for in memory images.")
-
-        print(os.getcwd())
-        home = Path.home()
-        quPath_dir = home / "AppData" / "Local" / "QuPath-0.7.0"
-
-        cwd = Path(os.getcwd())
-        out_path = cwd / f"{out_filename or self.path}-{script_name}.tif"
-        project = cwd / "HnE" / "project"
-
-        qupath_exe = (quPath_dir / "QuPath-0.7.0 (console).exe",)
-
-        args = [
-            qupath_exe,
-            "script",
-            "--project",
-            project / "project.qpproj",
-            "--image",
-            self.path.name,
-            "--args",
-            out_path,
-            project / "scripts" / f"{script_name}.groovy",
-        ]
-
-        str_args = [str(arg) for arg in args]
-
-        # 1. Start the subprocess
-        process = await asyncio.create_subprocess_exec(
-            str(qupath_exe),
-            *str_args[1:],
-            cwd=quPath_dir,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-
-        # 2. Define a helper to stream lines as they arrive
-        async def stream_output(stream: asyncio.StreamReader, prefix: str):
-            while True:
-                line = await stream.readline()
-                if not line:
-                    break  # EOF reached
-
-                # Print live to the console.
-                # end="" is used because `line` already contains the newline character.
-                print(f"{prefix}{line.decode()}", end="")
-
-        # 3. Read stdout, read stderr, and wait for the process to exit concurrently
-        if process.stderr is None or process.stdout is None:
-            raise AttributeError("process has no stdout or stderr somehow!")
-
-        await asyncio.gather(
-            stream_output(process.stdout, "[QuPath INFO] "),
-            stream_output(process.stderr, "[QuPath ERR]  "),
-            process.wait(),
-        )
-
-        # 4. Check exit status
-        if process.returncode != 0:
-            raise RuntimeError(f"QuPath script failed with return code {process.returncode}.")
-
-        # 5. Read the image asynchronously
-        loop = asyncio.get_running_loop()
-        img: ANTsImage = await loop.run_in_executor(None, ants.image_read, str(out_path))  # type: ignore
-
         self.maps[script_name] = img
         return img
 
@@ -370,14 +307,36 @@ class LazyAntsImage:
         return ANTsImage.__repr__(self.img)
 
 
+import pprint
+
+
+class ANTsPrettyPrinter(pprint.PrettyPrinter):
+    def format(self, object, context, maxlevels, level):
+        # Check if the object is an ANTsImage by looking at its class name
+        if type(object).__name__ == "ANTsImage":
+            # Return your custom short string, plus readable/recursive flags
+            return "<ANTsImage>", True, False
+
+        # For everything else, fall back to the default pprint behavior
+        return super().format(object, context, maxlevels, level)
+
+
+# Usage:
+mypprint = lambda x: ANTsPrettyPrinter(width=200, indent=0).pprint(x)
+
+
 def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: RegParams):
     mri_slices = dicom_params["slices"]
     hist_slices = hist_params["slices"]
+
+    out_maps = defaultdict(list)
 
     if hist_params["loc_within"]:
         hist_allocation = register_hist_within(hist_slices, hist_params, dicom_params, return_reg_dict=False)
     else:
         hist_allocation = allocate_hists(hist_slices, dicom_params)
+
+    progress.reset(total=sum(len(v) for v in hist_allocation.values()))
 
     # print({key: [v["img"].path.name for v in val] for key, val in hist_allocation.items()})
 
@@ -391,12 +350,17 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
         mri_zero: ANTsImage = ants.slice_image(mri_img.img, axis=-1, idx=0)  # type: ignore
         mri_zero.set_direction(np.eye(2))
 
+        progress.write(f"Processing {mri_key}")
         mri_prepared_dict = prepare_mri(mri_zero)
         mri_processed = mri_prepared_dict["img"]
         mri_mask = mri_prepared_dict["mask"]  # type: ignore
-        mri_processed.astype("uint8").to_file(ensure_path_exists(base_out_path / f"{mri_key}-processed.png"))
+        if DEBUG:
+            mri_processed.astype("uint8").to_file(ensure_path_exists(base_out_path / f"{mri_key}-processed.png"))
 
         for slice_details in hist_allocation[mri_key]:
+            progress.set_description(f"{mri_key} -- {slice_details['img'].path.name}")
+            progress.write(f"Processing histology {slice_details['img'].path.name}")
+
             hist_zero = slice_details["img"].greyscale_img(hist_params["greyscale_type"])
             hist_out_path = base_out_path / slice_details["img"].path.name / mri_key
 
@@ -412,21 +376,10 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
 
             affine_init = None
             if reg_params["use_initial_transform"]:
+                progress.write("Generating affine initializer")
                 affine_init = ants.affine_initializer(fixed_image=mri_processed, moving_image=hist_img)
 
-            hist_img.astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_hist.png"))
-            (hist_mask * 255).astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_mask.png"))
-
-            print(f"""
-                {hist_img.origin=}
-                {mri_processed.origin=}
-                {hist_mask.origin=}
-                {mri_mask.origin=}
-                  """)
-
-            print("MRI Mask unique values:", np.unique(mri_mask.numpy()))
-            print("Hist Mask unique values:", np.unique(hist_mask.numpy()))
-
+            progress.write("Running registration")
             registered: RegistrationDict = ants.registration(
                 fixed=mri_processed,
                 moving=hist_img,
@@ -435,25 +388,56 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
                 initial_transform=affine_init,
                 **reg_params,
             )
-            print(f"{registered['warpedmovout'].shape=}, {mri_processed.shape=}")
-            registered["warpedmovout"].astype("uint8").to_file(ensure_path_exists(hist_out_path / f"coloc.png"))
-            registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"coloc.nii.gz"))
 
+            if DEBUG:
+                hist_img.astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_hist.png"))
+                (hist_mask * 255).astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_mask.png"))
+
+                print(f"""
+                    {hist_img.origin=}
+                    {mri_processed.origin=}
+                    {hist_mask.origin=}
+                    {mri_mask.origin=}
+                    """)
+
+                print("MRI Mask unique values:", np.unique(mri_mask.numpy()))
+                print("Hist Mask unique values:", np.unique(hist_mask.numpy()))
+
+                print(f"{registered['warpedmovout'].shape=}, {mri_processed.shape=}")
+                registered["warpedmovout"].astype("uint8").to_file(ensure_path_exists(hist_out_path / f"coloc.png"))
+                registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"coloc.nii.gz"))
+
+            progress.write("Transforming the original high-res histology")
             transform_original_hist(
                 hist_zero, slice_details, mri_processed, mri_mask, registered["fwdtransforms"], out_path=hist_out_path
             )
 
             if slice_details["maps"]:
+                transformed_mask: ANTsImage = ants.apply_transforms(
+                    transformlist=registered["fwdtransforms"],
+                    fixed=hist_mask,
+                    moving=hist_mask,
+                    interpolator="genericLabel",
+                )  # type: ignore
+
+                (transformed_mask * 255).astype("uint8").to_file(
+                    ensure_path_exists(hist_out_path / f"transformed_mask.png")
+                )
+
                 maps = process_maps(
                     slice_details,
                     registered["fwdtransforms"],
                     mri_processed,
+                    hist_mask,
                     mri_key=mri_key,
                     dicom_params=dicom_params,
                     out_path=hist_out_path,
                 )
 
+                out_maps[mri_key].append(*maps.values())
+
                 for map_name, map_dict in maps.items():
+                    progress.write(f"Map {map_name} computed with MI: {map_dict['mutual_info']}")
 
                     plot_roi_intensity(
                         map_dict["img"],
@@ -466,7 +450,20 @@ def ants_init(dicom_params: DicomParams, hist_params: HistParams, reg_params: Re
 
             create_checkerboard(mri_processed, registered["warpedmovout"], squares=(8, 8), out_path=hist_out_path)
 
-            create_hist_volume(registered["warpedmovout"], mri_key, dicom_params, out_path=hist_out_path)
+            create_hist_volume({mri_key: registered["warpedmovout"]}, dicom_params, out_path=hist_out_path)
+
+            progress.update(1)
+            progress.write("---")
+    combined = combine_maps(out_maps)
+    mypprint(combined)
+    for map_key, map_group in combined.items():
+
+        create_hist_volume(
+            map_group, dicom_params, out_path=base_out_path / map_key / "combined.nii.gz", interp="genericLabel"
+        )
+
+
+# print(combined)
 
 
 @overload
@@ -571,7 +568,6 @@ def prepare_hist_thresholding(
         centered = align_centers_physically(mri, scaled_img, mri_mask, scaled_mask)
         fullres_img = centered["img"]
         fullres_mask = centered["mask"]
-        print(f"{fullres_img.origin=}, {fullres_mask.origin=}")
     else:
         fullres_img = scaled_img
         fullres_mask = scaled_mask
@@ -664,8 +660,7 @@ def scale_and_align_to_ref(img: ANTsImage, reference: ANTsImage, interp: str = "
 
 
 def create_hist_volume(
-    hist: ANTsImage,
-    mri_key: str,
+    hist_dict: dict[str, ANTsImage],
     dicom_params: DicomParams,
     out_path: Path,
     interp: str | None = "linear",
@@ -675,28 +670,34 @@ def create_hist_volume(
     appropriate Z-index, and the rest of the Z-slices are black. This allows for comparison/overlay with the original MRI volume.
 
     Args:
-        hist: The histology image to insert into the volume. May be an actual histology slice or a computed map.
-        Must be the same X and Y dimensions as the volume
-
-        mri_key: The key of the MRI slide. The index of which the histology will be placed at.
+        hist_dict: A dictionary, where the keys are the MRI keys, and the values are the histology images. The images will be inserted into the volume at the index of the MRI slides associated with the keys (see dicom_params) E.g `{"mri_1": hist1, "mri_2": hist2}`
 
         dicom_params: The main dicom parameters of the program, containing the volume and MRI slices.
 
         out_path: Filepath to output the nifti volume
+
+        interp: if the hist images aren't the same shape as the MRI slides, the interpolation method to apply during resampling
     """
     mri_volume = dicom_params["volume"]
 
     # if hist.shape[0:2] != mri_volume.shape[0:2]:
     #     raise ValueError(f"Histology shape {hist.shape} doesn't match MRI shape {mri_volume.shape}")
 
-    zeros: np.ndarray[tuple[int, int, int], np.dtypes.Float32DType] = np.zeros_like(mri_volume.numpy())  # type: ignore
+    mypprint(hist_dict)
 
-    hist_scaled: ANTsImage = ants.resample_image_to_target(hist, mri_volume[:, :, 0], interp_type=interp)  # type: ignore
-    print(f"{hist_scaled.shape=}")
+    zeros = np.zeros_like(mri_volume.numpy())
 
-    idx = dicom_params["slices"][mri_key]["index"]
+    mapped = {dicom_params["slices"][mri_key]["index"]: img for mri_key, img in hist_dict.items()}
 
-    zeros[:, :, idx] = hist_scaled.numpy()
+    mypprint(mapped)
+
+    for idx, img in mapped.items():
+        if img.shape[0:2] != mri_volume.shape[0:2]:
+            hist_scaled: ANTsImage = ants.resample_image_to_target(img, mri_volume[:, :, 0], interp_type=interp)  # type: ignore
+        else:
+            hist_scaled = img
+
+        zeros[:, :, idx] = hist_scaled.numpy()
 
     out = ants.new_image_like(mri_volume, zeros)
 
@@ -739,9 +740,9 @@ def transform_original_hist(
 def prepare_mri(mri: ANTsImage) -> ThresholdDict:
     mri_bias_corrected = ants.abp_n4(mri)
     thresholded = threshold_img(mri_bias_corrected, destructive=True)
-    print(f"{thresholded['mask'].dtype=}")
-    # a = center_and_pad(thresholded, thresholded["img"].shape)
-    (thresholded["mask"] * 255).astype("uint8").to_file("mri_mask.png")  # type: ignore
+    if DEBUG:
+        print(f"{thresholded['mask'].dtype=}")
+        (thresholded["mask"] * 255).astype("uint8").to_file("mri_mask.png")  # type: ignore
     return thresholded
 
 
@@ -749,8 +750,9 @@ def process_maps(
     slice_details: HistSlicesDict,
     transform: list[str],
     mri_processed: ANTsImage,
+    hist_mask: ANTsImage,
     out_path: Path,
-    mri_key: str | None = "",
+    mri_key: str,
     dicom_params: DicomParams | None = None,
 ) -> dict[str, ProcessedMap]:
     if "maps" not in slice_details:
@@ -758,9 +760,10 @@ def process_maps(
 
     ret_dict: dict[str, ProcessedMap] = {}
 
-    for map_name, map_img in slice_details["maps"].items():
+    for map_name, map_dict in slice_details["maps"].items():
+        progress.write(f"Processing map {map_name}")
         map_processed = prepare_hist(
-            map_img,
+            map_dict["map_img"],
             slice_details,
             mri_processed,
             threshold=False,
@@ -768,10 +771,6 @@ def process_maps(
             interp="genericLabel",
             out_path=out_path / "maps" / "debug",
         )
-
-        map_img.astype("uint8").to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map_raw.png"))
-        map_processed.astype("uint8").to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map_processed.png"))
-
         map_transformed: ANTsImage = ants.apply_transforms(
             transformlist=transform,
             fixed=map_processed,
@@ -779,36 +778,178 @@ def process_maps(
             interpolator="genericLabel",
         )  # type: ignore
 
-        print(f"""
-            {mri_processed.shape=}
-            {mri_processed.spacing=}
-            {mri_processed.origin=}
-            {mri_processed.direction=}
-            {map_transformed.shape=}
-            {map_transformed.spacing=}
-            {map_transformed.origin=}
-            {map_transformed.direction=}
-        """)
+        mask_transformed: ANTsImage = ants.apply_transforms(
+            transformlist=transform,
+            fixed=hist_mask,
+            moving=hist_mask,
+            interpolator="genericLabel",
+        )  # type: ignore
 
-        map_transformed.astype("uint8").to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map.png"))
-        map_transformed.to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map.tif"))
+        map_masked = map_transformed * mask_transformed
+
+        if (necrosis_map := slice_details["necrosis_map"]) and map_dict["necrosis_correct"]:
+            necrosis_processed = prepare_hist(
+                necrosis_map,
+                slice_details,
+                mri_processed,
+                threshold=False,
+                resample=True,
+                interp="genericLabel",
+                out_path=out_path / "maps" / "debug",
+            )
+            necrosis_transformed: ANTsImage = ants.apply_transforms(
+                transformlist=transform,
+                fixed=necrosis_processed,
+                moving=necrosis_processed,
+                interpolator="genericLabel",
+            )  # type: ignore
+
+            progress.write("Necrosis-correcting cell density map")
+            final_map = necrosis_correct_density(map_masked, necrosis_transformed)  #
+
+            # (final_map * 255).astype("uint8").to_file(
+            #     ensure_path_exists(out_path / "maps" / f"{map_name}_map_corrected.nii.gz")
+            # )
+        else:
+            final_map = map_masked
+
+        if DEBUG:
+
+            print(f"""
+                {mri_processed.shape=}
+                {mri_processed.spacing=}
+                {mri_processed.origin=}
+                {mri_processed.direction=}
+                {map_transformed.shape=}
+                {map_transformed.spacing=}
+                {map_transformed.origin=}
+                {map_transformed.direction=}
+            """)
+
+            (map_dict["map_img"] * 255).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / f"{map_name}_map_raw.png")
+            )
+            (map_processed * 255).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / f"{map_name}_map_processed.png")
+            )
+
+            (map_masked * 255).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_masked.png"))
+
+            (map_transformed * 255).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / f"{map_name}_map.png")
+            )
+            (map_transformed * 255).to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map.tif"))
 
         if mri_key and dicom_params:
             # Create a volume with identical shape to the original MRI volume with the map inserted in the appropriate place
             create_hist_volume(
-                map_transformed,
-                mri_key,
+                {mri_key: final_map},
                 dicom_params,
                 interp="genericLabel",
                 out_path=out_path / "maps" / f"{map_name}.nii.gz",
             )
 
-        mi_score: float = ants.image_mutual_information(mri_processed, map_transformed)
-        print(mi_score)
+            if DEBUG:
+                create_hist_volume(
+                    {mri_key: map_transformed},
+                    dicom_params,
+                    interp="genericLabel",
+                    out_path=out_path / "maps" / f"{map_name}unmasked.nii.gz",
+                )
 
-        ret_dict[map_name] = {"img": map_transformed, "mutual_info": mi_score}
+        mi_score: float = ants.image_mutual_information(mri_processed, final_map)
+        # print(mi_score)
+
+        ret_dict[map_name] = {
+            "img": final_map,
+            "mutual_info": mi_score,
+            "mri_key": mri_key,
+            "map_name": map_name,
+            "combine_type": map_dict["combine_type"],
+        }
 
     return ret_dict
+
+
+def sum_imgs(*imgs: ANTsImage) -> ANTsImage:
+    if not imgs:
+        raise ValueError("Please provide at least one AntsImage.")
+    return reduce(operator.add, imgs)
+
+
+def mean_imgs(*imgs: ANTsImage) -> ANTsImage:
+    if not imgs:
+        raise ValueError("Please provide at least one AntsImage.")
+    return ants.average_images(list(imgs), normalize=False)  # type: ignore
+
+
+def combine_maps(maps: dict[str, list[ProcessedMap]]):
+
+    grouped_output = {}
+
+    for mri_key, map_list in maps.items():
+        inner_grouped = defaultdict(list)
+        combine_types_map = {}
+
+        for processed_map in map_list:
+            # We use a shallow copy so we can remove 'combine_type'
+            # from the inner dicts without mutating the original input data
+            map_copy = copy.copy(processed_map)
+            map_name = map_copy["map_name"]
+
+            # Extract and remove combine_type from the individual entry
+            current_combine_type = map_copy.pop("combine_type", None)
+
+            # 1. Store and Validate combine_type
+            if map_name not in combine_types_map:
+                # First time seeing this map_name, store its combine_type
+                combine_types_map[map_name] = current_combine_type
+            elif combine_types_map[map_name] != current_combine_type:
+                # We've seen this map_name, but the combine_type is different
+                raise ValueError(
+                    f"Conflicting combine_type in {mri_key} for '{map_name}': "
+                    f"Expected '{combine_types_map[map_name]}', got '{current_combine_type}'"
+                )
+
+            # 2. Append the cleaned dictionary to our grouped list
+            inner_grouped[map_name].append(map_copy)
+
+        # 3. Construct the new nested output format
+        grouped_output[mri_key] = {}
+        for map_name, map_groups in inner_grouped.items():
+            grouped_output[mri_key][map_name] = {"combine_type": combine_types_map[map_name], "maps": map_groups}
+
+    #mypprint(grouped_output)
+
+    combine_fns = {"add": sum_imgs, "mean": mean_imgs}
+
+    combined_out = defaultdict(dict)
+
+    for mri_key, mri_groups in grouped_output.items():
+        for map_key, map_groups in mri_groups.items():
+
+            combine_fn = combine_fns.get(map_groups["combine_type"], None)
+            if not combine_fn:
+                raise KeyError(f"Invalid combine type {map_groups['combine_type']}. No corresponding function")
+
+            # imgs = (entry["img"] for entry in map_groups["maps"])
+
+            imgs = []
+            for i, entry in enumerate(map_groups["maps"], 1):
+                img: ANTsImage = entry["img"]
+                imgs.append(img)
+
+                if DEBUG:
+                    img.to_file(f"{mri_key}-{map_key}{i}.nii.gz")
+
+            combined = combine_fn(*imgs)
+
+            combined_out[map_key][mri_key] = combined
+
+            if DEBUG:
+                combined.to_file(f"{mri_key}-{map_key}-combined.nii.gz")
+
+    return combined_out
 
 
 def allocate_hists(hists: list[HistSlicesDict], dicom_params: DicomParams) -> AllocatedHists[HistSlicesDict]:
@@ -973,30 +1114,6 @@ def image_info(img: ANTsImage) -> ImageInfo:
     return LazyAntsImage(img).image_info
 
 
-def best_rotation(hist: LazyAntsImage, mri: ANTsImage):
-    out = {"img": None, "mi": float("-inf"), "rotation": 0}
-
-    histimg = hist.greyscale_img()
-    mri_sliced: ANTsImage = ants.slice_image(mri, axis=-1, idx=0).astype("float32")  # type: ignore
-
-    mri_processed = prepare_mri(mri_sliced)["img"]
-
-    hist_processed: ANTsImage = scale_and_align_to_ref(histimg, mri_processed, resample=True)  # type: ignore
-
-    for deg in range(0, 360):
-        print(deg)
-        rotated = LazyAntsImage(hist_processed).rotate(deg)
-        mi = ants.image_mutual_information(rotated, mri_processed) * -1  # MI is negative for some reason
-
-        if mi > out["mi"]:
-            out["img"] = rotated
-            out["mi"] = mi
-            out["rotation"] = deg
-
-    out["mri"] = mri_processed
-    return out
-
-
 def generate_maps_for_params(hist_params: HistParams, scripts: dict[str, ScriptDict]) -> HistParams:
     """
     Run qupath scripts for each slice in the hist params
@@ -1015,7 +1132,7 @@ def generate_maps_for_params(hist_params: HistParams, scripts: dict[str, ScriptD
             map_output = slice_entry["img"].run_qupath_script(
                 project_path=Path("23yqp"), script_name=script_dict["script_name"], script_args=script_dict["args"]
             )
-            slice_entry["maps"][map_name] = map_output
+            slice_entry["maps"][map_name]["map_img"] = map_output
 
     return hist_params
 
@@ -1066,6 +1183,23 @@ def plot_roi_intensity(
     # plt.show()
 
 
+def necrosis_correct_density(tumour_density: ANTsImage, necrosis: ANTsImage) -> ANTsImage:
+    """
+    A simpler, more rudimentary necrosis correction. Simply add the necrosis% to the tumour%,
+    and assume the total is a marker for overall tumour infiltration.
+
+    Args:
+        tumour_density: The tumour density map
+        necrosis: The necrosis map
+
+    Returns:
+        ANTsImage: The necrosis-corrected tumour density map
+    """
+    ants.copy_image_info(tumour_density, necrosis)
+
+    return tumour_density + necrosis
+
+
 if __name__ == "__main__":
     dicom: DicomParams = {
         "volume": ants.dicom_read("23Y_SC2"),
@@ -1090,130 +1224,98 @@ if __name__ == "__main__":
                 "img": LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S1.svs"),
                 "rotation": 110,
                 "maps": {
-                    "cell count 100": ants.image_read(
-                        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S1.svs_cellularity_100um.tif")
-                    ),
+                    "cell count 100": {
+                        "map_img": ants.image_read(
+                            str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S1.svs_cellularity_100um.tif")
+                        ),
+                        "necrosis_correct": False,
+                        "combine_type": "add",
+                    },
                 },
-                "register_to": ["mri_1", "mri_2"],
+                "register_to": "mri_1",
+                "necrosis_map": None,
             },
             {
                 "img": LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S2.svs"),
                 "rotation": 110,
                 "maps": {
-                    # "cell count 80": ants.image_read(str(Path("23yqp") / "export" / "tile_cell_counts_80um.tif")),
-                    "cell count 100": ants.image_read(
-                        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S2.svs_cellularity_100um.tif")
-                    ),
+                    "cell count 100": {
+                        "map_img": ants.image_read(
+                            str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S2.svs_cellularity_100um.tif")
+                        ),
+                        "necrosis_correct": False,
+                        "combine_type": "add",
+                    },
                 },
-                "register_to": ["mri_1", "mri_2"],
+                "register_to": "mri_1",
+                "necrosis_map": None,
             },
             {
                 "img": LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S3.svs"),
                 "rotation": 110,
                 "maps": {
-                    "cell count 100": ants.image_read(
-                        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S3.svs_cellularity_100um.tif")
-                    ),
+                    "cell count 100": {
+                        "map_img": ants.image_read(
+                            str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S3.svs_cellularity_100um.tif")
+                        ),
+                        "necrosis_correct": False,
+                        "combine_type": "add",
+                    },
                 },
                 "register_to": ["mri_1", "mri_2"],
+                "necrosis_map": None,
             },
             {
                 "img": LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S4.svs"),
                 "rotation": 110,
                 "maps": {
-                    "cell count 100": ants.image_read(
-                        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S4.svs_cellularity_100um.tif")
-                    ),
+                    "cell count 100": {
+                        "map_img": ants.image_read(
+                            str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S4.svs_cellularity_100um.tif")
+                        ),
+                        "necrosis_correct": False,
+                        "combine_type": "add",
+                    },
                 },
-                "register_to": ["mri_1", "mri_2"],
+                "register_to": "mri_2",
+                "necrosis_map": None,
             },
             {
                 "img": LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S5.svs"),
                 "rotation": 110,
                 "maps": {
-                    "cell count 100": ants.image_read(
-                        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S5.svs_cellularity_100um.tif")
-                    ),
+                    "cell count 100": {
+                        "map_img": ants.image_read(
+                            str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S5.svs_cellularity_100um.tif")
+                        ),
+                        "necrosis_correct": False,
+                        "combine_type": "add",
+                    },
                 },
-                "register_to": ["mri_1", "mri_2"],
+                "register_to": "mri_2",
+                "necrosis_map": None,
             },
         ],
     }
 
-    reg: RegParams = {"type_of_transform": "SyNRA", "out_prefix": Path("1"), "use_initial_transform": True}
+    reg: RegParams = {"type_of_transform": "SyNRA", "out_prefix": Path("23Y"), "use_initial_transform": True}
     # hist_params = generate_maps_for_params(hist_params, {"cell count": {"script_name": "cell count mask", "args": []}})
+    global progress
+    progress = tqdm()
     ants_init(dicom_params=dicom, hist_params=hist_params, reg_params=reg)
 
-    # mri = LazyAntsImage(Path("AV_GBM_PK_AV_GBM_PK_GCBA5.23Y_SC2__E4_P1") / "MRIm08.dcm", dimension=3).img
+    dummy_img: ANTsImage = ants.image_read(
+        str(Path("23yqp") / "export" / "240920_GCBA_23y_HnE20x_S5.svs_cellularity_100um.tif")
+    )  # type: ignore
+    test: dict[str, list[ProcessedMap]] = {
+        "mri_1": [
+            {"img": dummy_img, "map_name": "cell_count", "mri_key": "mri_1", "mutual_info": 0.3, "combine_type": "add"},
+            {"img": dummy_img, "map_name": "cell_count", "mri_key": "mri_1", "mutual_info": 0.5, "combine_type": "add"},
+        ],
+        "mri_2": [
+            {"img": dummy_img, "map_name": "cell_count", "mri_key": "mri_2", "mutual_info": 0.3, "combine_type": "add"},
+            {"img": dummy_img, "map_name": "cell_count", "mri_key": "mri_2", "mutual_info": 0.5, "combine_type": "add"},
+        ],
+    }
 
-    # # mri.astype("uint8").to_file("mri.png")
-    # # mri: ANTsImage = ants.slice_image(mri, axis=-1, idx=0)  # type: ignore
-    # mri = ants.abp_n4(mri)
-    # out = threshold_img(mri, destructive=True)
-    # out["img"].astype("uint8").to_file("mrithresh.png")
-    # (out["mask"] * 255).astype("uint8").to_file("mrimask.png")
-
-    # hist = LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S5.svs").greyscale_img()
-    # out = threshold_img(hist, destructive=False)
-    # out["img"].astype("uint8").to_file("histthresh.png")
-    # (out["mask"] * 255).astype("uint8").to_file("histmask.png")
-
-    # from skimage import data
-
-    # # Example IHC image
-    # img_rgb = LazyAntsImage(Path("23Y") / "240920_GCBA_23y_HnE20x_S5.svs").img
-
-    # # Separate the stains from the IHC image
-    # ihc_hed = rgb2hed(img_rgb.numpy())
-
-    # # Create an RGB image for each of the stains
-    # null = np.zeros_like(ihc_hed[:, :, 0])
-    # ihc_h = ihc_hed[:, :, 0] #hed2rgb(np.stack((ihc_hed[:, :, 0], null, null), axis=-1))
-    # ihc_e = ihc_hed[:, :, 1] #hed2rgb(np.stack((null, ihc_hed[:, :, 1], null), axis=-1))
-    # ihc_d = ihc_hed[:, :, 2] #hed2rgb(np.stack((null, null, ihc_hed[:, :, 2]), axis=-1))
-
-    # he_image = hed2rgb(np.stack((ihc_hed[:, :, 0], ihc_hed[:, :, 1], null), axis=-1))
-
-    # print(he_image.shape, he_image.dtype)
-
-    # gray_np = np.mean(he_image, axis=-1, dtype=np.float64)
-
-    # inverted = gray_np.max() - gray_np
-    # antsimg = ants.from_numpy(inverted, spacing=img_rgb.spacing, origin=img_rgb.origin, direction=img_rgb.direction, has_components=False)
-    # (antsimg * 255).astype("uint8").to_file("he.png")
-
-    # inverted = ihc_h.max() - ihc_h
-    # h_image = ants.from_numpy(inverted, spacing=img_rgb.spacing, origin=img_rgb.origin, direction=np.eye(2), has_components=False)
-    # (h_image * 255).astype("uint8").to_file("h.png")
-
-    # inverted = ihc_e.max() - ihc_e
-    # e_image = ants.from_numpy(inverted, spacing=img_rgb.spacing, origin=img_rgb.origin, direction=np.eye(2), has_components=False)
-    # (e_image * 255).astype("uint8").to_file("e.png")
-
-    # # # Display
-    # # fig, axes = plt.subplots(3, 2, figsize=(7, 6), sharex=True, sharey=True)
-    # # ax = axes.ravel()
-
-    # # ax[0].imshow(img_rgb)
-    # # ax[0].set_title("Original image")
-
-    # # ax[1].imshow(ihc_h)
-    # # ax[1].set_title("Hematoxylin")
-
-    # # ax[2].imshow(ihc_e)
-    # # ax[2].set_title("Eosin")  # Note that there is no Eosin stain in this image
-
-    # # ax[3].imshow(ihc_d)
-    # # ax[3].set_title("DAB")
-
-    # # ax[4].imshow(he_image)
-    # # ax[4].set_title("H&E")
-
-    # # for a in ax.ravel():
-    # #     a.axis("off")
-
-    # # fig.tight_layout()
-    # # plt.show()
-
-    # mri = LazyAntsImage(Path("AV_GBM_PK_AV_GBM_PK_GCBA5.23Y_SC2__E4_P1") / "MRIm08.dcm", dimension=3)
-    # print(mri.metadata)
+    # combine_maps(test)

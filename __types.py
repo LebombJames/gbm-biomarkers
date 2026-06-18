@@ -50,7 +50,7 @@ class HistParams(TypedDict):
     loc_within: bool
     """Localise the slices against slide 3 before colocalising against the MRI"""
     fixed_image: int
-    """Array index of the fixed image if localising within hist slides. Slide 3 by default"""
+    """Array index of the fixed image if localising within hist slides. `2` (Slide 3) by default"""
     # use_masks: bool
     # """
     # Threshold slides before registration. A `mask` value can be provided in each slice, otherwise a mask will be calculated using ants.
@@ -67,6 +67,20 @@ class RegParams(TypedDict):
     use_initial_transform: bool
 
 
+class HistSlicesMaps(TypedDict):
+    map_img: ANTsImage
+    """The image of the map"""
+    necrosis_correct: bool
+    """
+    False: No correction
+
+    1: Cellularity necrosis correction
+
+    2: Tumour% necrosis correction
+    """
+    combine_type: Literal["add", "mean"]
+
+
 class HistSlicesDict(TypedDict):
     img: LazyAntsImage
     rotation: int
@@ -74,8 +88,8 @@ class HistSlicesDict(TypedDict):
 
     Note: Rotation is applied *after* cropping.
     """
-    maps: dict[str, ANTsImage]
-    """Maps computed using `img`, which will be registeted using the same transform calculated on `img`."""
+    maps: dict[str, HistSlicesMaps]
+    """Maps computed using `img`, which will be registered using the same transform calculated on `img` from the registration."""
     crop: NotRequired[tuple[tuple[int, int], tuple[int, int]]]
     """
     The indicies to crop the image with. `((X1, Y1), (X2, Y2))`, where `X1` and `Y1` are
@@ -85,6 +99,8 @@ class HistSlicesDict(TypedDict):
     """
     register_to: str | list[str]
     "The key of the MRI slide to register this histology to. If a list of strings, the histology will be allocated to all corresponding MRI slides. See `DicomParams`."
+    necrosis_map: ANTsImage | None
+    "The necrosis map used to correct the map images in `maps`"
 
 
 T = TypeVar("T", LazyAntsImage, RegistrationDict, ANTsImage, HistSlicesDict)
@@ -119,3 +135,6 @@ class ImageInfo(TypedDict):
 class ProcessedMap(TypedDict):
     img: ANTsImage
     mutual_info: float
+    mri_key: str
+    map_name: str
+    combine_type: Literal["add", "mean"]
