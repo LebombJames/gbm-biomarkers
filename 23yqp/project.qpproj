@@ -1,0 +1,2264 @@
+{
+  "version": "0.7.0",
+  "createTimestamp": 1781015769411,
+  "modifyTimestamp": 1781015769411,
+  "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/23yqp/project.qpproj",
+  "lastID": 55,
+  "images": [
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23r_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23r_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 21,
+      "randomizedName": "65132dcb-8b50-41a9-a7e0-f14aafa7b0d5",
+      "imageName": "240920_GCBA_23r_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23r_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23r_HnE20x_S2.svs",
+          "width": 49152,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 49152,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 12288,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 3072,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 22,
+      "randomizedName": "b0c80533-de21-4df2-8e33-a0911c804cac",
+      "imageName": "240920_GCBA_23r_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23r_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23r_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 131072,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 131072
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 32768
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 8192
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 23,
+      "randomizedName": "ddee5678-703e-49b8-95d4-5680f13a7a3a",
+      "imageName": "240920_GCBA_23r_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23r_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23r_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 24,
+      "randomizedName": "6b89d359-0662-4b34-b0ef-8cfca76cfcd9",
+      "imageName": "240920_GCBA_23r_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23r_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23r_HnE20x_S5.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 25,
+      "randomizedName": "bc1dead7-f45e-4eaf-bc99-08ad95cb1167",
+      "imageName": "240920_GCBA_23r_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23s_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23s_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 26,
+      "randomizedName": "10ab177c-0871-447a-b06a-a884f4777987",
+      "imageName": "240920_GCBA_23s_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23s_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23s_HnE20x_S2.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 27,
+      "randomizedName": "d2f6dc1b-c87e-44df-ae6e-25d25923a38e",
+      "imageName": "240920_GCBA_23s_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23s_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23s_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 28,
+      "randomizedName": "27391421-5982-4d4d-9e03-3b3bcb1b3c42",
+      "imageName": "240920_GCBA_23s_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23s_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23s_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 29,
+      "randomizedName": "04ff5ede-cd4e-4dca-b893-8a9f6c9ff5c0",
+      "imageName": "240920_GCBA_23s_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23s_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23s_HnE20x_S5.svs",
+          "width": 53248,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 53248,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 13312,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 3328,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 30,
+      "randomizedName": "520ae540-8119-47ba-a886-6c580534c791",
+      "imageName": "240920_GCBA_23s_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23t_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23t_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 31,
+      "randomizedName": "ba6aa462-03ad-482a-b14d-f8042c300d3f",
+      "imageName": "240920_GCBA_23t_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23t_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23t_HnE20x_S2.svs",
+          "width": 61440,
+          "height": 81920,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 61440,
+              "height": 81920
+            },
+            {
+              "downsample": 4.0,
+              "width": 15360,
+              "height": 20480
+            },
+            {
+              "downsample": 16.0,
+              "width": 3840,
+              "height": 5120
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 32,
+      "randomizedName": "911f3a8d-e64f-4aac-a405-4424e2c5a1ba",
+      "imageName": "240920_GCBA_23t_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23t_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23t_HnE20x_S3.svs",
+          "width": 49152,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 49152,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 12288,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 3072,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 33,
+      "randomizedName": "e52477aa-2ff8-472e-b4de-53b85d3f4f37",
+      "imageName": "240920_GCBA_23t_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23t_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23t_HnE20x_S4.svs",
+          "width": 53248,
+          "height": 61440,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 53248,
+              "height": 61440
+            },
+            {
+              "downsample": 4.0,
+              "width": 13312,
+              "height": 15360
+            },
+            {
+              "downsample": 16.0,
+              "width": 3328,
+              "height": 3840
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 34,
+      "randomizedName": "8f4b580f-3f8d-47c7-82b4-024ca257c689",
+      "imageName": "240920_GCBA_23t_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23t_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23t_HnE20x_S5.svs",
+          "width": 40960,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 40960,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 10240,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2560,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 35,
+      "randomizedName": "2933a54f-b747-4ef3-8672-33f366c30508",
+      "imageName": "240920_GCBA_23t_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23u_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23u_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 36,
+      "randomizedName": "578ce8ce-6f56-417b-9965-6f41eeded3c9",
+      "imageName": "240920_GCBA_23u_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23u_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23u_HnE20x_S2.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 37,
+      "randomizedName": "0062f9d5-3de7-4186-8abe-964e6f7bf1e2",
+      "imageName": "240920_GCBA_23u_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23u_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23u_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 38,
+      "randomizedName": "30433fdb-1177-4d27-8adb-3fbdfa38db32",
+      "imageName": "240920_GCBA_23u_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23u_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23u_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 39,
+      "randomizedName": "2b97bd9a-7b65-4f1a-bda1-a99990a30c2e",
+      "imageName": "240920_GCBA_23u_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23u_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23u_HnE20x_S5.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 40,
+      "randomizedName": "e556d564-e522-41d1-a9a1-9c89b1a7275d",
+      "imageName": "240920_GCBA_23u_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23w_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23w_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 41,
+      "randomizedName": "85f1a487-3445-417b-81c6-bf0d16147c70",
+      "imageName": "240920_GCBA_23w_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23w_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23w_HnE20x_S2.svs",
+          "width": 49152,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 49152,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 12288,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 3072,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 42,
+      "randomizedName": "539d8044-cb8e-4bc0-a646-e9417feaf0b3",
+      "imageName": "240920_GCBA_23w_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23w_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23w_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 77824,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 77824
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 19456
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 4864
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 43,
+      "randomizedName": "12023231-5dfc-4541-9b62-81910e347723",
+      "imageName": "240920_GCBA_23w_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23w_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23w_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 44,
+      "randomizedName": "e5b05e26-5ac0-4e51-86a1-7854cd406f17",
+      "imageName": "240920_GCBA_23w_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23w_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23w_HnE20x_S5.svs",
+          "width": 49152,
+          "height": 131072,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 49152,
+              "height": 131072
+            },
+            {
+              "downsample": 4.0,
+              "width": 12288,
+              "height": 32768
+            },
+            {
+              "downsample": 16.0,
+              "width": 3072,
+              "height": 8192
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 45,
+      "randomizedName": "6ea6b081-8f3a-42eb-b40e-24207da9a750",
+      "imageName": "240920_GCBA_23w_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23x_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23x_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 46,
+      "randomizedName": "2c7b2a03-a415-4e65-a473-3a12528b7642",
+      "imageName": "240920_GCBA_23x_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23x_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23x_HnE20x_S2.svs",
+          "width": 45056,
+          "height": 143360,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 143360
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 35840
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 8960
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 47,
+      "randomizedName": "32b57509-bea2-4768-a095-53b9d78ba0e8",
+      "imageName": "240920_GCBA_23x_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23x_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23x_HnE20x_S3.svs",
+          "width": 49152,
+          "height": 73728,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 49152,
+              "height": 73728
+            },
+            {
+              "downsample": 4.0,
+              "width": 12288,
+              "height": 18432
+            },
+            {
+              "downsample": 16.0,
+              "width": 3072,
+              "height": 4608
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 48,
+      "randomizedName": "3c0c0a67-daef-430a-8d87-bd1691f770ba",
+      "imageName": "240920_GCBA_23x_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23x_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23x_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 49,
+      "randomizedName": "3b901cc9-f292-4ba3-bab8-95d29b6cd62f",
+      "imageName": "240920_GCBA_23x_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/OneDrive%20-%20University%20of%20Glasgow/GBM/3_Data/PreClin_Raw/HnE/240920_GCBA_23x_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23x_HnE20x_S5.svs",
+          "width": 53248,
+          "height": 106496,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 53248,
+              "height": 106496
+            },
+            {
+              "downsample": 4.0,
+              "width": 13312,
+              "height": 26624
+            },
+            {
+              "downsample": 16.0,
+              "width": 3328,
+              "height": 6656
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 50,
+      "randomizedName": "fef89e15-221e-44f8-be21-d076d13b1394",
+      "imageName": "240920_GCBA_23x_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S1.svs",
+        "args": []
+      },
+      "entryID": 51,
+      "randomizedName": "cd4319b9-71f4-4b94-ae04-fd7ea83a9b7b",
+      "imageName": "240920_GCBA_23y_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S2.svs",
+        "args": []
+      },
+      "entryID": 52,
+      "randomizedName": "732ad213-f875-47d3-bdf5-d04eff1e623d",
+      "imageName": "240920_GCBA_23y_HnE20x_S2.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S3.svs",
+        "args": []
+      },
+      "entryID": 53,
+      "randomizedName": "58da8256-91d4-4ec8-8678-9ac309be4782",
+      "imageName": "240920_GCBA_23y_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S4.svs",
+        "args": []
+      },
+      "entryID": 54,
+      "randomizedName": "f7aaf8a3-cbf5-4ebb-8b0b-dbc891734854",
+      "imageName": "240920_GCBA_23y_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S5.svs",
+        "args": []
+      },
+      "entryID": 55,
+      "randomizedName": "e5256085-3934-46cd-abd6-8b761d24a9f1",
+      "imageName": "240920_GCBA_23y_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    }
+  ]
+}

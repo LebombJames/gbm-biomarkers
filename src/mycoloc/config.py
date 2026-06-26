@@ -4,7 +4,7 @@ import random
 import ants.config
 import numpy as np
 
-DEBUG = False
+DEBUG = True
 """If True, prints various diagnostic details to console, and creates intermediate images between steps."""
 
 seed = 123

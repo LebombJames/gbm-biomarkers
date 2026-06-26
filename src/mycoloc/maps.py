@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import operator
+from operator import add
 from collections import defaultdict
 from functools import reduce
 from pathlib import Path
@@ -21,7 +21,8 @@ def process_maps(
     mri_key: str,
     dicom_params: DicomParams | None = None,
 ) -> dict[str, ProcessedMap]:
-    from src.mycoloc.coloc import DEBUG, create_hist_volume, prepare_hist, progress
+    from src.mycoloc.coloc import (DEBUG, create_hist_volume, prepare_hist,
+                                   progress)
 
     if "maps" not in slice_details:
         raise AttributeError(f"Slice {slice_details['img'].path.name} has no associated maps.")
@@ -31,7 +32,7 @@ def process_maps(
     for map_name, map_dict in slice_details["maps"].items():
         progress.write(f"Processing map {map_name}")
         map_processed = prepare_hist(
-            map_dict["map_img"],
+            map_dict["map_img"].img,
             slice_details,
             mri_processed,
             threshold=False,
@@ -57,7 +58,7 @@ def process_maps(
 
         if (necrosis_map := slice_details["necrosis_map"]) and map_dict["necrosis_correct"]:
             necrosis_processed = prepare_hist(
-                necrosis_map,
+                necrosis_map.img,
                 slice_details,
                 mri_processed,
                 threshold=False,
@@ -83,18 +84,18 @@ def process_maps(
 
         if DEBUG:
 
-            print(f"""
-                {mri_processed.shape=}
-                {mri_processed.spacing=}
-                {mri_processed.origin=}
-                {mri_processed.direction=}
-                {map_transformed.shape=}
-                {map_transformed.spacing=}
-                {map_transformed.origin=}
-                {map_transformed.direction=}
-            """)
+            # print(f"""
+            #     {mri_processed.shape=}
+            #     {mri_processed.spacing=}
+            #     {mri_processed.origin=}
+            #     {mri_processed.direction=}
+            #     {map_transformed.shape=}
+            #     {map_transformed.spacing=}
+            #     {map_transformed.origin=}
+            #     {map_transformed.direction=}
+            # """)
 
-            (map_dict["map_img"] * 255).astype("uint8").to_file(
+            (map_dict["map_img"].img * 255).astype("uint8").to_file(
                 ensure_path_exists(out_path / "maps" / f"{map_name}_map_raw.png")
             )
             (map_processed * 255).astype("uint8").to_file(
@@ -142,7 +143,7 @@ def process_maps(
 def sum_imgs(*imgs: ANTsImage) -> ANTsImage:
     if not imgs:
         raise ValueError("Please provide at least one AntsImage.")
-    return reduce(operator.add, imgs)
+    return reduce(add, imgs)
 
 
 def mean_imgs(*imgs: ANTsImage) -> ANTsImage:
@@ -158,7 +159,7 @@ def combine_maps(maps: list[ProcessedMap]):
     from src.mycoloc.coloc import DEBUG
 
     # grouped_imgs[map_name][mri_key] = [img1, img2, ...]
-    grouped_imgs = defaultdict(lambda: defaultdict(list))
+    grouped_imgs: defaultdict[str, defaultdict[str, list[ANTsImage]]] = defaultdict(lambda: defaultdict(list))
     combine_types_map = {}
 
     # list[ProcessedMap] -> {"map1": {"mri_1": [img1, img2], "mri_2": [img3, img4]}, "map2": {...} }
@@ -177,14 +178,14 @@ def combine_maps(maps: list[ProcessedMap]):
 
         grouped_imgs[map_name][mri_key].append(processed_map["img"])
 
-    combined_out = defaultdict(dict)
+    combined_out: defaultdict[str, dict[str, ANTsImage]] = defaultdict(dict)
 
     for map_name, mri_dict in grouped_imgs.items():
         # Get the combine type for this map name
         combine_fn = combine_fns.get(combine_types_map[map_name], None)
 
         if not combine_fn:
-            raise KeyError(f"Invalid combine type '{combine_types_map[map_name]}'.")
+            raise KeyError(f"Invalid combine type: {combine_types_map[map_name]}")
 
         for mri_key, imgs in mri_dict.items():
 

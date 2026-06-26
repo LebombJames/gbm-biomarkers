@@ -79,15 +79,11 @@ class RegParams(TypedDict):
 
 
 class HistSlicesMaps(TypedDict):
-    map_img: ANTsImage
+    map_img: LazyAntsImage
     """The image of the map"""
     necrosis_correct: bool
     """
-    False: No correction
-
-    1: Cellularity necrosis correction
-
-    2: Tumour% necrosis correction
+    Whether to apply Tumour% necrosis correction (use only for cell density maps)
     """
     combine_type: Literal["add", "mean"]
 
@@ -101,7 +97,7 @@ class HistSlicesDict(TypedDict):
     """
     maps: dict[str, HistSlicesMaps]
     """Maps computed using `img`, which will be registered using the same transform calculated on `img` from the registration."""
-    crop: NotRequired[tuple[tuple[int, int], tuple[int, int]]]
+    crop: NotRequired[ROI]
     """
     The indicies to crop the image with. `((X1, Y1), (X2, Y2))`, where `X1` and `Y1` are
     the minimum indicies to crop at, and `X2` and `Y2` are the maximum to crop at.
@@ -110,7 +106,7 @@ class HistSlicesDict(TypedDict):
     """
     register_to: str | list[str]
     "The key of the MRI slide to register this histology to. If a list of strings, the histology will be allocated to all corresponding MRI slides. See `DicomParams`."
-    necrosis_map: ANTsImage | None
+    necrosis_map: LazyAntsImage | None
     "The necrosis map used to correct the map images in `maps`"
 
 

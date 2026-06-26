@@ -7,8 +7,8 @@ from skimage.morphology import ball, disk
 
 from src.mycoloc.__types import *
 from src.mycoloc.config import DEBUG
-from src.mycoloc.utils import ensure_path_exists
 from src.mycoloc.LazyAntsImage import LazyAntsImage
+from src.mycoloc.utils import ensure_path_exists
 
 
 def align_centers_physically(
@@ -77,7 +77,7 @@ def prepare_mri(mri: ANTsImage) -> ThresholdDict:
     mri_bias_corrected = ants.abp_n4(mri)
     thresholded = threshold_img(mri_bias_corrected, destructive=True)
     if DEBUG:
-        print(f"{thresholded['mask'].dtype=}")
+        #print(f"{thresholded['mask'].dtype=}")
         (thresholded["mask"] * 255).astype("uint8").to_file("mri_mask.png")  # type: ignore
     return thresholded
 

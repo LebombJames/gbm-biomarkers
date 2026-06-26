@@ -10,8 +10,8 @@ from ants import ANTsImage
 
 from src.mycoloc.__types import *
 from src.mycoloc.img_utils import align_centers_physically, scale_and_align_to_ref, threshold_img
-from src.mycoloc.utils import ensure_path_exists, is_file, mypprint
 from src.mycoloc.LazyAntsImage import LazyAntsImage
+from src.mycoloc.utils import ensure_path_exists, is_file, mypprint
 
 
 @overload
@@ -59,29 +59,35 @@ def prepare_hist(
     out_path: Path | None = None,
 ) -> ANTsImage | ThresholdDict:
     if "crop" in slice_details:
-        hist = ants.crop_indices(hist, slice_details["crop"][0], slice_details["crop"][1])
+        crop = slice_details["crop"]
+        #print(hist.shape)
+        if hist.shape != slice_details["img"].img.shape:
+            # then this is a map, so we need to scale the crop, because the maps are smaller
 
-    shape = hist.shape
-    # Pythagoras: determine the diagonal length of the image
-    diagonal = math.ceil(math.sqrt(shape[0] ** 2 + shape[1] ** 2))
+            hist_shape = slice_details["img"].img.shape
+            map_shape = hist.shape
+            x_ratio, y_ratio = (map_shape[0] / hist_shape[0], map_shape[1] / hist_shape[1])
 
-    # Pad the image equally on all sides to fit the diagonal
-    # This ensures the rotation has enough space on all sides, so that the histology doesn't get clipped
-    # The diagnoal is the max possible width the image can be when rotating, so if we accomodate for that, the image will never clip
-    # We calculate the difference between the diagonal and the current dimensions because ants adds the required size
-    pad_x = (diagonal - shape[0]) // 2
-    pad_y = (diagonal - shape[1]) // 2
+            corrected_x, corrected_y = (
+                (crop[0][0] * x_ratio, crop[0][1] * x_ratio),
+                (crop[1][0] * y_ratio, crop[1][1] * y_ratio),
+            )
+            #print(corrected_x, corrected_y)
+            hist = ants.crop_indices(
+                hist, tuple(int(val) for val in corrected_x), tuple(int(val) for val in corrected_y)
+            )
+        else:
+            hist = ants.crop_indices(hist, crop[0], crop[1])
 
-    padded: ANTsImage = ants.pad_image(hist, pad_width=[(pad_x, pad_x), (pad_y, pad_y)], value=0)  # type: ignore
-    hist_rotated = LazyAntsImage(padded).rotate(slice_details["rotation"])
+    hist_after_rotation = LazyAntsImage(hist).rotate(slice_details["rotation"])
     if out_path:
-        hist_rotated.astype("uint8").to_file(ensure_path_exists(out_path / "hist-rotated.png"))
+        hist_after_rotation.astype("uint8").to_file(ensure_path_exists(out_path / "hist-rotated.png"))
 
     if threshold:
-        thresholded = threshold_img(hist_rotated, destructive=False)
+        thresholded = threshold_img(hist_after_rotation, destructive=False)
         return prepare_hist_thresholding(thresholded, mri, mri_mask, center, resample, interp, out_path)
     else:
-        scaled_img = scale_and_align_to_ref(hist_rotated, mri, interp)
+        scaled_img = scale_and_align_to_ref(hist_after_rotation, mri, interp)
 
     if resample:
         final_img: ANTsImage = ants.resample_image_to_target(scaled_img, mri, interp_type=interp)  # type: ignore

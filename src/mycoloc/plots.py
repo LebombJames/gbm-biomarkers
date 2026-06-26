@@ -1,9 +1,13 @@
 from pathlib import Path
 
 import ants
-import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use('agg')
+
 import numpy as np
 from ants import ANTsImage
+from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
 from src.mycoloc.__types import *
@@ -29,7 +33,7 @@ def plot_roi_intensity(
     if np.unique(normalised_hist)[0] == np.inf or np.unique(normalised_hist)[0] == np.inf:
         raise ValueError("Pixel normalisation divided by zero. Double check your ROI isn't all black")
 
-    fig = plt.figure(layout="constrained")
+    fig = Figure(layout="constrained")
 
     gs = GridSpec(3, 2, figure=fig)
     ax1 = fig.add_subplot(gs[0:-1, 0:])
@@ -51,5 +55,7 @@ def plot_roi_intensity(
     ax3.imshow(cropped_mri)
     ax3.set(title="MRI Image")
 
-    plt.savefig(out_path)
+    fig.savefig(str(out_path))
+    del fig
+    #plt.close(fig)
     # plt.show()

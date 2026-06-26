@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 import subprocess
 from functools import cached_property
@@ -20,10 +21,16 @@ class LazyAntsImage:
     """
     A wrapper around Path that lazy loads an AntsImage when called, or returns a cached version.
     """
+    def __new__(cls, path_or_img, *args, **kwargs):
+        # Immediately return the existing param if its a LazyAntsImage
+        if isinstance(path_or_img, LazyAntsImage):
+            return path_or_img
+
+        return super().__new__(cls)
 
     def __init__(
         self,
-        path_or_img: Path | ANTsImage,
+        path_or_img: Path | ANTsImage | LazyAntsImage,
         level: int = 2,
         *args,
         **kwargs,
@@ -32,9 +39,14 @@ class LazyAntsImage:
         self.args = args
         self.kwargs = kwargs
 
-        self.maps: dict[str, ANTsImage] = {}
+        self.maps: dict[str, LazyAntsImage] = {}
 
-        if isinstance(path_or_img, Path):
+        from src.mycoloc.utils import progress
+        self.progress = progress
+
+        if isinstance(path_or_img, LazyAntsImage):
+            return  # Handled in __new__
+        elif isinstance(path_or_img, Path):
             self.path = path_or_img
         elif isinstance(path_or_img, ANTsImage):
             self.img = path_or_img
@@ -44,20 +56,19 @@ class LazyAntsImage:
     @cached_property
     def img(self) -> ANTsImage:
         """Return the cached Ants image, or load it from the path if not loaded yet."""
-        from src.mycoloc.coloc import progress
 
         if self.path is None:
             # Mainly here for type checking, if img was provided in the params but path wasn't, img is returned immediately before
             # this whole function is even called.
             raise ValueError("No path was provided, and there was no provided image to fallback to.")
 
-        progress.write(f"Loading image: {self.path}")
+        self.progress.write(f"Loading image: {self.path}")
 
         return self.svs_read(self.path) if self.is_hist else ants.image_read(str(self.path), *self.args, **self.kwargs)
 
     @property
     def is_hist(self):
-        return str(self.path).endswith(".svs")
+        return self.path.suffix == ".svs"
 
     @property
     def header_info(self) -> AntsHeader:
@@ -73,7 +84,7 @@ class LazyAntsImage:
 
         metadata: dict[str, Any] = ants.read_image_metadata(str(self.path))
 
-        translated = {}
+        translated: dict[str, Any] = {}
         for key, value in metadata.items():
             # Check if the key matches the "XXXX|YYYY" DICOM tag pattern
             split = key.split("|")
@@ -91,7 +102,7 @@ class LazyAntsImage:
 
             except:
                 # Fallback just in case the lookup fails
-                translated[key] = value  #
+                translated[key] = value
 
         return translated
 
@@ -173,7 +184,7 @@ class LazyAntsImage:
 
     def run_qupath_script(
         self, project_path: Path, script_name: str, out_filename: str = "", script_args: list[str] | None = None
-    ) -> ANTsImage:
+    ) -> LazyAntsImage:
         """
         Run a qupath script that takes this image as an argument (`args[0]` in the groovy script),
         and creates an output image, which we read and return
@@ -223,7 +234,7 @@ class LazyAntsImage:
             print(f"STDERR: {e.stderr}")
             raise Exception from e
 
-        img: ANTsImage = ants.image_read(str(out_path))  # type: ignore
+        img = LazyAntsImage(out_path)
         self.maps[script_name] = img
         return img
 
@@ -263,9 +274,25 @@ class LazyAntsImage:
         return ants_img
 
     def rotate(self, deg: int) -> ANTsImage:
+        if deg == 0:
+            return self.img
+
         img = self.img
+
+        shape = img.shape
+        # Pythagoras: determine the diagonal length of the image
+        diagonal = math.ceil(math.sqrt(shape[0] ** 2 + shape[1] ** 2))
+
+        # Pad the image equally on all sides to fit the diagonal
+        # The diagnoal is the max possible width the image can be when rotating, so if we accomodate for that, the image will never clip
+        # We calculate the difference between the diagonal and the current dimensions because ants adds the required size
+        pad_x = (diagonal - shape[0]) // 2
+        pad_y = (diagonal - shape[1]) // 2
+
+        padded: ANTsImage = ants.pad_image(img, pad_width=[(pad_x, pad_x), (pad_y, pad_y)], value=0)  # type: ignore
+
         return ants.from_numpy(
-            np.array(Image.fromarray(img.numpy()).rotate(deg)),
+            np.array(Image.fromarray(padded.numpy()).rotate(deg)),
             origin=img.origin,
             spacing=img.spacing,
             direction=img.direction,
@@ -273,4 +300,4 @@ class LazyAntsImage:
         )
 
     def __repr__(self):
-        return ANTsImage.__repr__(self.img)
+        return f"LazyAntsImage({self.path})"
