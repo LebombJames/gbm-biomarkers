@@ -3,8 +3,9 @@ import ij.ImagePlus
 import ij.io.FileSaver
 
 // Tile size in microns, will be used for tile creation and cell counting
-int tileSizeMicrons = (args && args.length > 1) ? args[1] : 100
+int tileSizeMicrons = (args && args.length > 1) ? args[1] : 150
 
+removeAnnotations()
 createFullImageAnnotation(true)
 runPlugin('qupath.lib.algorithms.TilerPlugin', """{"tileSizeMicrons":${tileSizeMicrons},"trimToROI":true,"makeAnnotations":true,"removeParentAnnotation":true}""")
 
@@ -45,9 +46,9 @@ if (objects.size() == 0) objects = hierarchy.getAnnotationObjects()
 for (ann in objects) {
     def children = ann.getChildObjects()
 
-    def tumorPct = ann.getMeasurements().get("necrosis: Tumor %")
-    print(tumorPct)
-    if (!tumorPct) continue
+    def necrosisPct = ann.getMeasurements().get("necrosis: Necrosis %")
+//    print(necrosisPct)
+    if (!necrosisPct) continue
 
     def roi = ann.getROI()
     if (roi == null) continue
@@ -62,7 +63,7 @@ for (ann in objects) {
 
     // Add +1 to the corresponding pixel in our output image
     if (col >= 0 && col < cols && row >= 0 && row < rows) {
-        fp.setf(col, row, tumorPct as float)
+        fp.setf(col, row, necrosisPct as float)
     }
 
 
@@ -74,7 +75,7 @@ ImagePlus imp = new ImagePlus("Cell Density Per ${tileSizeMicrons}um Tile", fp)
 // 7. Define where to save the image (Saves into a folder called "export" in your project)
 String outDir = buildFilePath(PROJECT_BASE_DIR, "export")
 mkdirs(outDir)
-String outPath = buildFilePath(outDir, "${server.getMetadata().getName()}_cell_density_${tileSizeMicrons}um.tif")
+String outPath = buildFilePath(outDir, "${server.getMetadata().getName()}_necrosis_${tileSizeMicrons}um.tif")
 
 // Save as a 32-bit TIFF
 FileSaver fs = new FileSaver(imp)

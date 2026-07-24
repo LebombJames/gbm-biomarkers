@@ -5,23 +5,26 @@ import os
 import subprocess
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Literal, cast, overload
+from typing import Any, Literal, cast
 
 import ants
+import skimage.exposure as se
 import tiffslide
 from ants import ANTsImage
 from PIL import Image
 from pydicom import datadict
-from skimage.color import hed2rgb, rgb2hed
+from skimage.color import rgb2hed
 
 from src.mycoloc.__types import *
+from src.mycoloc.utils import animal_id_from_filename, slice_number_from_filename
 
 
 class LazyAntsImage:
     """
     A wrapper around Path that lazy loads an AntsImage when called, or returns a cached version.
     """
-    def __new__(cls, path_or_img, *args, **kwargs):
+
+    def __new__(cls, path_or_img=None, *args, **kwargs):
         # Immediately return the existing param if its a LazyAntsImage
         if isinstance(path_or_img, LazyAntsImage):
             return path_or_img
@@ -32,6 +35,7 @@ class LazyAntsImage:
         self,
         path_or_img: Path | ANTsImage | LazyAntsImage,
         level: int = 2,
+        flags: dict[str, Any] | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -40,9 +44,6 @@ class LazyAntsImage:
         self.kwargs = kwargs
 
         self.maps: dict[str, LazyAntsImage] = {}
-
-        from src.mycoloc.utils import progress
-        self.progress = progress
 
         if isinstance(path_or_img, LazyAntsImage):
             return  # Handled in __new__
@@ -53,22 +54,41 @@ class LazyAntsImage:
         else:
             raise TypeError("Neither a Path or an AntsImage were provided.")
 
+        if flags:
+            self.flags = flags
+        else:
+            self.flags = {}
+
     @cached_property
     def img(self) -> ANTsImage:
         """Return the cached Ants image, or load it from the path if not loaded yet."""
+        from src.mycoloc.utils import progress
 
         if self.path is None:
             # Mainly here for type checking, if img was provided in the params but path wasn't, img is returned immediately before
             # this whole function is even called.
             raise ValueError("No path was provided, and there was no provided image to fallback to.")
 
-        self.progress.write(f"Loading image: {self.path}")
+        progress.write(f"Loading image: {self.path}")
 
         return self.svs_read(self.path) if self.is_hist else ants.image_read(str(self.path), *self.args, **self.kwargs)
 
     @property
     def is_hist(self):
         return self.path.suffix == ".svs"
+
+    @property
+    def animal_id(self):
+        if self.path is None:
+            raise ValueError("Animal ID is not available for in memory images.")
+        return animal_id_from_filename(str(self.path))
+
+    @property
+    def slice_number(self):
+        if self.path is None:
+            raise ValueError("Slice Number is not available for in memory images.")
+        slide = slice_number_from_filename(str(self.path))
+        return int(slide[1:])
 
     @property
     def header_info(self) -> AntsHeader:
@@ -129,6 +149,8 @@ class LazyAntsImage:
 
             # Invert. Ants seems to work best with a black background
             inverted = gray_np.max() - gray_np
+
+            # print(inverted.min(), inverted.max())
         elif mode in ["h", "e", "h&e"]:
             mode = cast(Literal["h", "e", "h&e"], mode)
             ihc_hed = rgb2hed(img.numpy())
@@ -139,14 +161,33 @@ class LazyAntsImage:
             ihc_d = ihc_hed[:, :, 2]
 
             if mode == "h&e":
-                he_image = hed2rgb(np.stack((ihc_hed[:, :, 0], ihc_hed[:, :, 1], null), axis=-1))
-                gray_np = np.mean(he_image, axis=-1, dtype=np.float64)
 
-                inverted = gray_np.max() - gray_np
+                he_image = ihc_h + ihc_e
+                he_max = img.max()
+                tissue_mask = he_image > 0
+
+                p1, p99 = np.percentile(he_image[tissue_mask], (1, 99))
+                stretched_image = se.rescale_intensity(he_image, in_range=(p1, p99), out_range=(0, 1))  # type: ignore
+
+                stretched_image[~tissue_mask] = 0
+
+                # eq = equalize_hist(he_image)
+
+                # plt.imshow(he_image, cmap="gray")
+                # plt.show()
+                # plt.imshow(stretched_image, cmap="gray")
+                # plt.show()
+                return ants.from_numpy(
+                    # stretched_image is [0,1], so convert back to the original's scale (idk why but its black without this)
+                    stretched_image * he_max,
+                    origin=img.origin,
+                    spacing=img.spacing,
+                    direction=img.direction,
+                )
             elif mode == "e":
-                inverted = ihc_e.max() - ihc_e
+                return ants.from_numpy(ihc_e, origin=img.origin, spacing=img.spacing, direction=img.direction)
             elif mode == "h":
-                inverted = ihc_h.max() - ihc_h
+                return ants.from_numpy(ihc_h, origin=img.origin, spacing=img.spacing, direction=img.direction)
         elif isinstance(mode, str):  # "red", "green", "blue"
             try:
                 colour_idx = colour_map[cast(Literal["red", "green", "blue"], mode)]
@@ -189,6 +230,8 @@ class LazyAntsImage:
         Run a qupath script that takes this image as an argument (`args[0]` in the groovy script),
         and creates an output image, which we read and return
         """
+        from src.mycoloc.utils import ensure_path_exists
+
         if self.path is None:
             raise ValueError("Scripts not available for in memory images.")
 
@@ -204,7 +247,7 @@ class LazyAntsImage:
         quPath_dir = home / "AppData" / "Local" / "QuPath-0.7.0"
 
         cwd = Path(os.getcwd())
-        out_path = cwd / f"{out_filename or self.path.name}-{script_name}.tif"
+        out_path = cwd / "qupath_out" / f"{out_filename or self.path.name}-{script_name}.tif"
         project = cwd / project_path
 
         args = [
@@ -215,12 +258,12 @@ class LazyAntsImage:
             "--image",
             self.path.name,
             "--args",
-            out_path,
+            ensure_path_exists(out_path),
             *processed_args,
             project / "scripts" / f"{script_name}.groovy",
         ]
 
-        # print([str(arg) for arg in args])
+        print([str(arg) for arg in args])
 
         try:
             subprocess.run(
@@ -242,7 +285,6 @@ class LazyAntsImage:
         level = self.level
         if level == 0:
             print("Loading the image with no downscaling. Your computer may explode!")
-            return ants.image_read(str(self.path), *self.args, **self.kwargs)
 
         slide = tiffslide.TiffSlide(path)
 
@@ -251,11 +293,13 @@ class LazyAntsImage:
 
         target_dims = slide.level_dimensions[level]
 
+        # print(f"{level=}, {target_dims=}, {slide.level_downsamples=}")
+
         rgba_image = slide.read_region((0, 0), level, target_dims)
 
         # Convert RGBA to RGB, then to a numpy array
         rgb_image = rgba_image.convert("RGB")
-        np_img = np.array(rgb_image)
+        np_img = np.array(rgb_image, copy=None)
 
         # We have (Y, X, C), ANTs expects (X, Y, C)
         np_img = np.transpose(np_img, (1, 0, 2))
@@ -292,12 +336,20 @@ class LazyAntsImage:
         padded: ANTsImage = ants.pad_image(img, pad_width=[(pad_x, pad_x), (pad_y, pad_y)], value=0)  # type: ignore
 
         return ants.from_numpy(
-            np.array(Image.fromarray(padded.numpy()).rotate(deg)),
+            np.array(Image.fromarray(padded.view()).rotate(deg)),
             origin=img.origin,
             spacing=img.spacing,
             direction=img.direction,
             has_components=img.has_components,
         )
+
+    def round(self) -> ANTsImage:
+        arr = self.img.numpy()
+
+        return self.new_image_like(np.rint(arr, out=arr))
+
+    def new_image_like(self, data: npt.NDArray) -> ANTsImage:
+        return ants.new_image_like(self.img, data)
 
     def __repr__(self):
         return f"LazyAntsImage({self.path})"

@@ -1,5 +1,4 @@
 import gc
-import math
 from collections import defaultdict
 from pathlib import Path
 from typing import Literal, overload
@@ -9,9 +8,9 @@ import SimpleITK as sitk
 from ants import ANTsImage
 
 from src.mycoloc.__types import *
-from src.mycoloc.img_utils import align_centers_physically, scale_and_align_to_ref, threshold_img
+from src.mycoloc.img_utils import correct_map_interp, scale_and_align_to_ref, threshold_img
 from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import ensure_path_exists, is_file, mypprint
+from src.mycoloc.utils import ensure_path_exists, is_file
 
 
 @overload
@@ -24,7 +23,7 @@ def prepare_hist(
     threshold: Literal[True] = True,
     center: bool = True,
     resample: bool = True,
-    interp: str = "linear",
+    interp: str = "nearestNeighbor",
     out_path: Path | None = None,
 ) -> ThresholdDict:
     pass
@@ -40,7 +39,7 @@ def prepare_hist(
     threshold: Literal[False],
     center: bool = True,
     resample: bool = True,
-    interp: str = "linear",
+    interp: str = "nearestNeighbor",
     out_path: Path | None = None,
 ) -> ANTsImage:
     pass
@@ -60,7 +59,7 @@ def prepare_hist(
 ) -> ANTsImage | ThresholdDict:
     if "crop" in slice_details:
         crop = slice_details["crop"]
-        #print(hist.shape)
+        # print(hist.shape)
         if hist.shape != slice_details["img"].img.shape:
             # then this is a map, so we need to scale the crop, because the maps are smaller
 
@@ -72,7 +71,7 @@ def prepare_hist(
                 (crop[0][0] * x_ratio, crop[0][1] * x_ratio),
                 (crop[1][0] * y_ratio, crop[1][1] * y_ratio),
             )
-            #print(corrected_x, corrected_y)
+            # print(corrected_x, corrected_y)
             hist = ants.crop_indices(
                 hist, tuple(int(val) for val in corrected_x), tuple(int(val) for val in corrected_y)
             )
@@ -106,7 +105,7 @@ def prepare_hist_thresholding(
     mri_mask: ANTsImage | None,
     center: bool = False,
     resample: bool = True,
-    interp: str = "linear",
+    interp: str = "nearestNeighbor",
     out_path: Path | None = None,
 ) -> ThresholdDict:
 
@@ -115,22 +114,11 @@ def prepare_hist_thresholding(
     if out_path:
         (scaled_mask * 255).astype("uint8").to_file(ensure_path_exists(out_path / "scaled-mask.png"))
 
-    if center:
-        if mri_mask is None:
-            raise ValueError("An MRI mask must be provided perform centering.")
-
-        centered = align_centers_physically(mri, scaled_img, mri_mask, scaled_mask)
-        fullres_img = centered["img"]
-        fullres_mask = centered["mask"]
-    else:
-        fullres_img = scaled_img
-        fullres_mask = scaled_mask
-
     if resample:
-        final_img: ANTsImage = ants.resample_image_to_target(fullres_img, mri, interp_type=interp)  # type: ignore
+        final_img: ANTsImage = ants.resample_image_to_target(scaled_img, mri, interp_type=interp)  # type: ignore
         # This needs to be float32 or it outputs a black image??
         final_mask: ANTsImage = ants.resample_image_to_target(
-            fullres_mask.astype("float32"), mri, interp_type="genericLabel"
+            scaled_mask.astype("float32"), mri, interp_type="genericLabel"
         )  # type: ignore
 
         # final_img = ants.resample_image(fullres_img, resample_params=mri.shape[0:2], use_voxels=True)
@@ -153,6 +141,7 @@ def prepare_hist_thresholding(
 
 def allocate_hists(hists: list[HistSlicesDict], dicom_params: DicomParams) -> AllocatedHists[HistSlicesDict]:
     """Assign each hist slide an MRI slide to be coregistered with (assuming 5 hist slides and 2 MRI slides)"""
+    from src.mycoloc.utils import progress
 
     ret_dict = defaultdict(list)
     valid_mri_keys = dicom_params["slices"].keys()
@@ -171,6 +160,9 @@ def allocate_hists(hists: list[HistSlicesDict], dicom_params: DicomParams) -> Al
                 check_keys(key)
         else:
             check_keys(mri_key)
+
+    progress.total += sum(len(v) for v in ret_dict.values())  # type: ignore
+    progress.refresh()
 
     return dict(ret_dict)
 
@@ -195,24 +187,31 @@ def register_hist_within(
     """
     Register hist slices against others. Returns a dict with hist slides allocated to MRI slides, optionally including the registration info. See `allocate_hists`
     """
+    from src.mycoloc.utils import progress
 
-    registered: AllocatedHists = defaultdict(list)
+    registered = defaultdict(list)
+    fixed_img_idx = hist_params.get("fixed_image", 2)
 
-    fixed = hists[hist_params.get("fixed_image", 2)]["img"].greyscale_img()
+    fixed = hists[fixed_img_idx]["img"]
+    fixed_img = fixed.greyscale_img(hist_params["greyscale_type"])
     moving_dict = allocate_hists(hists, dicom_params)
 
     for mri_key, hist_dicts in moving_dict.items():
-        for hist_dict in hist_dicts:
+        for i, hist_dict in enumerate(hist_dicts):
+            if fixed.path == hist_dict["img"].path:
+                registered[mri_key].append(hist_dict)
+                continue
 
-            moving = hist_dict["img"].greyscale_img()
+            progress.write(f"Registering {hist_dict['img'].path} against slice {fixed.path}. This may take some time!")
 
-            reg: RegistrationDict = ants.registration(fixed=fixed, moving=moving, type_of_transform="SyNRA")
+            moving = hist_dict["img"].greyscale_img(hist_params["greyscale_type"])
 
-            registered[mri_key].append(
-                reg
-                if return_reg_dict
-                else {"img": LazyAntsImage(reg["warpedmovout"]), "rotation": hist_dict["rotation"]}
-            )
+            reg: RegistrationDict = ants.registration(fixed=fixed_img, moving=moving, type_of_transform="SyN")
+            progress.write(f"Registered {hist_dict['img'].path} against slice {fixed_img_idx}")
+
+            hist_dict["img"].img = reg["warpedmovout"]
+
+            registered[mri_key].append(reg if return_reg_dict else hist_dict)
             gc.collect()
     return dict(registered)
 
@@ -230,6 +229,7 @@ def transform_original_hist(
     We use a downscaled version during registration to improve registration quality, but we can then apply that transform
     to the original for visualisation purposes.
     """
+    gc.collect()
     processed = prepare_hist(hist_zero, slice_details, mri_zero, mri_mask, center=False, resample=False)["img"]
 
     transformed: ANTsImage = ants.apply_transforms(
@@ -245,7 +245,8 @@ def create_hist_volume(
     hist_dict: dict[str, ANTsImage],
     dicom_params: DicomParams,
     out_path: Path,
-    interp: str | None = "linear",
+    interp: str | None = "nearestNeighbor",
+    is_map: bool = False,
 ) -> ANTsImage:
     """
     Create a 3D nifti in the same shape as the dicom volume from which the MRI slides are from, but insert the slide/map at the
@@ -267,7 +268,7 @@ def create_hist_volume(
 
     # mypprint(hist_dict)
 
-    zeros = np.zeros_like(mri_volume.numpy())
+    zeros = np.zeros_like(mri_volume.view())
 
     mapped = {dicom_params["slices"][mri_key]["index"]: img for mri_key, img in hist_dict.items()}
 
@@ -276,10 +277,12 @@ def create_hist_volume(
     for idx, img in mapped.items():
         if img.shape[0:2] != mri_volume.shape[0:2]:
             hist_scaled: ANTsImage = ants.resample_image_to_target(img, mri_volume[:, :, 0], interp_type=interp)  # type: ignore
+            # if is_map:
+            #     hist_scaled = correct_map_interp(img, hist_scaled)
         else:
             hist_scaled = img
 
-        zeros[:, :, idx] = hist_scaled.numpy()
+        zeros[:, :, idx] = hist_scaled.view()
 
     out = ants.new_image_like(mri_volume, zeros)
 

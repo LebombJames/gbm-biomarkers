@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypedDict, TypeVar
 
 import numpy as np
 import numpy.typing as npt
+import seaborn
+import seaborn.objects
 from ants import ANTsImage
+from matplotlib.figure import Figure
 from skimage.measure._regionprops import RegionProperties
 from typing_extensions import NotRequired
 
@@ -48,6 +51,10 @@ class DicomParams(TypedDict):
     volume: ANTsImage
 
 
+B = TypeVar("B", Literal["1"], Literal["2"])
+a = Literal[f"mri_{B}"]
+
+
 class MRISliceDict(TypedDict):
     img: LazyAntsImage
     index: int
@@ -70,12 +77,19 @@ class HistParams(TypedDict):
     # Threshold slides before registration. A `mask` value can be provided in each slice, otherwise a mask will be calculated using ants.
     # """
     greyscale_type: GreyscaleModes
+    split_multiple_register_to: bool
+    """If true, histology slices with an array of MRI keys to register to will have their pixel intensity split amongst them. By default, this is 1/n, where n is the length of `register_to`, but `middle_slice_factor` can customise this."""
 
 
 class RegParams(TypedDict):
     type_of_transform: str
     out_prefix: Path
     use_initial_transform: bool
+
+
+class AnimalParams(TypedDict):
+    mri: DicomParams
+    hist: HistParams
 
 
 class HistSlicesMaps(TypedDict):
@@ -106,6 +120,8 @@ class HistSlicesDict(TypedDict):
     """
     register_to: str | list[str]
     "The key of the MRI slide to register this histology to. If a list of strings, the histology will be allocated to all corresponding MRI slides. See `DicomParams`."
+    middle_slice_factor: NotRequired[dict[str, float]]
+    """If `register_to` is a list, a dict of floats (0,1] of weightings to apply for the slice at the MRI slice corresponding to the key. E.g {"mri_1": 0.5, "mri_2": 0.5} will halve the slice's intensities across its two MRI slices."""
     necrosis_map: LazyAntsImage | None
     "The necrosis map used to correct the map images in `maps`"
 
@@ -123,15 +139,37 @@ class ScriptDict(TypedDict):
 ROI = tuple[tuple[int, int], tuple[int, int]]
 
 
+class RegPlots(TypedDict):
+    name: str
+    checkerboard: list[RegPlot]
+    map_overview: list[RegPlot]
+    transformed_original: list[RegPlot]
+    mri_overview: list[RegPlot]
+
+
+class RegPlot(TypedDict):
+    img: ANTsImage | dict[str, ANTsImage] | dict[str, Any] | seaborn.objects.Plot | Figure
+    mri_key: str
+    hist_name: str | None
+    animal_name: NotRequired[str]
+    map_name: NotRequired[str]
+
+
 class ThresholdDict(TypedDict):
     img: ANTsImage
     mask: ANTsImage
     region: RegionProperties
+    plot: NotRequired[Figure]
 
 
 class ProcessedMap(TypedDict):
-    img: ANTsImage
+    img: LazyAntsImage
     mutual_info: float
     mri_key: str
     map_name: str
     combine_type: Literal["add", "mean"]
+
+
+class GridDims(NamedTuple):
+    nrows: int
+    ncols: int

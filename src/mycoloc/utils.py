@@ -1,28 +1,69 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import pprint
+import re
 import time
 from functools import wraps
+from itertools import starmap
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import Callable
 
-import ants
-import numpy as np
-from ants import ANTsImage
+import pandas as pd
 from tqdm import tqdm
 
 from src.mycoloc.__types import *
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-
-E = TypeVar("E")
 
 
-def find(arr: list[E], el: E) -> E | None:
-    try:
-        return arr[arr.index(el)]
-    except ValueError:
-        return None
+def n_subplots(n: int, orientation: Literal["wide", "long"] = "wide") -> GridDims:
+    if orientation == "long":
+        nrows = math.ceil(math.sqrt(n))
+        ncols = math.ceil(n / nrows)
+    else:
+        ncols = math.ceil(math.sqrt(n))
+        nrows = math.ceil(n / ncols)
+
+    return GridDims(nrows=nrows, ncols=ncols)
+
+
+def pretty_mri_key(key: str) -> str:
+    return key.replace("_", " ").upper()
+
+
+def animal_id_from_filename(filename: Path | str) -> str:
+    if not filename:
+        return ""
+
+    animal = re.search(r"23\w_", str(filename))
+    if animal:
+        animal = animal.group()
+    else:
+        raise ValueError(f"No animal found! {filename}")
+
+    return animal.upper()[:-1]
+
+
+def slice_number_from_filename(filename: Path | str) -> str:
+    slide = re.search("S\\d", str(filename))
+    if slide:
+        slide = slide.group()
+    else:
+        raise ValueError(f"No slide found! {filename}")
+    return slide
+
+
+def pretty_hist_filename(filename: Path | str) -> str:
+    if not filename:
+        return ""
+
+    filename = str(filename)
+
+    animal = animal_id_from_filename(filename)
+
+    slide = slice_number_from_filename(filename)
+
+    return f"{animal}-{slide[1:]}"
 
 
 def func_timer(func: Callable):
@@ -66,25 +107,16 @@ def ensure_path_exists(str_or_path: str | Path) -> str:
     return str(str_or_path)
 
 
-def image_info(img: ANTsImage) -> ImageInfo:
-    return LazyAntsImage(img).image_info
-
-
-def new_image_like_any_shape(image: ANTsImage, data: np.ndarray) -> ANTsImage:
-    return ants.from_numpy(
-        data=data,
-        spacing=image.spacing,
-        origin=image.origin,
-        direction=image.direction,
-        has_components=image.has_components,
-        is_rgb=image.is_rgb,
-    )
+def multi_index_to_str(midx: pd.Index, sep="_"):
+    fstr = sep.join(["{}"] * midx.nlevels)
+    return pd.Index(starmap(fstr.format, midx))
 
 
 class ANTsPrettyPrinter(pprint.PrettyPrinter):
     def format(self, object, context, maxlevels, level):
         if type(object).__name__ == "ANTsImage":
-            # Return a more readable string for Ants images (plus readable/recursive flags to match original return value)
+            # Return a more readable string for Ants images
+            # (repr_string, isreadable, isrecursive)
             return "<ANTsImage>", True, False
 
         return super().format(object, context, maxlevels, level)
@@ -94,5 +126,4 @@ def mypprint(x):
     ANTsPrettyPrinter(width=200, indent=0).pprint(x)
 
 
-global progress
 progress = tqdm(total=0)

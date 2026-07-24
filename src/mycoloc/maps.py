@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from operator import add
 from collections import defaultdict
 from functools import reduce
+from operator import add
 from pathlib import Path
 
 import ants
 from ants import ANTsImage
 
 from src.mycoloc.__types import *
-from src.mycoloc.utils import ensure_path_exists
+from src.mycoloc.img_utils import correct_map_interp
+from src.mycoloc.LazyAntsImage import LazyAntsImage
+from src.mycoloc.utils import ensure_path_exists, progress
 
 
 def process_maps(
@@ -19,42 +21,46 @@ def process_maps(
     hist_mask: ANTsImage,
     out_path: Path,
     mri_key: str,
+    hist_params: HistParams,
     dicom_params: DicomParams | None = None,
 ) -> dict[str, ProcessedMap]:
-    from src.mycoloc.coloc import (DEBUG, create_hist_volume, prepare_hist,
-                                   progress)
+    from src.mycoloc.coloc import DEBUG, create_hist_volume, prepare_hist
 
     if "maps" not in slice_details:
         raise AttributeError(f"Slice {slice_details['img'].path.name} has no associated maps.")
 
     ret_dict: dict[str, ProcessedMap] = {}
 
+    mask_transformed: ANTsImage = ants.apply_transforms(
+        transformlist=transform,
+        fixed=hist_mask,
+        moving=hist_mask,
+        interpolator="genericLabel",
+    )  # type: ignore
+
     for map_name, map_dict in slice_details["maps"].items():
         progress.write(f"Processing map {map_name}")
+        original_map = map_dict["map_img"].img
         map_processed = prepare_hist(
-            map_dict["map_img"].img,
+            original_map,
             slice_details,
             mri_processed,
             threshold=False,
             resample=True,
-            interp="genericLabel",
-            out_path=out_path / "maps" / "debug",
+            interp="nearestNeighbor",
+            out_path=out_path / "maps" / map_name / "debug",
         )
         map_transformed: ANTsImage = ants.apply_transforms(
             transformlist=transform,
             fixed=map_processed,
             moving=map_processed,
-            interpolator="genericLabel",
+            interpolator="nearestNeighbor",
         )  # type: ignore
 
-        mask_transformed: ANTsImage = ants.apply_transforms(
-            transformlist=transform,
-            fixed=hist_mask,
-            moving=hist_mask,
-            interpolator="genericLabel",
-        )  # type: ignore
+        map_masked: ANTsImage = map_transformed * mask_transformed
 
-        map_masked = map_transformed * mask_transformed
+        corrected_map = map_masked
+        # corrected_map = correct_map_interp(original_map, map_masked)
 
         if (necrosis_map := slice_details["necrosis_map"]) and map_dict["necrosis_correct"]:
             necrosis_processed = prepare_hist(
@@ -63,24 +69,24 @@ def process_maps(
                 mri_processed,
                 threshold=False,
                 resample=True,
-                interp="genericLabel",
-                out_path=out_path / "maps" / "debug",
+                interp="nearestNeighbor",
+                out_path=out_path / "maps" / map_name / "debug",
             )
             necrosis_transformed: ANTsImage = ants.apply_transforms(
                 transformlist=transform,
                 fixed=necrosis_processed,
                 moving=necrosis_processed,
-                interpolator="genericLabel",
+                interpolator="nearestNeighbor",
             )  # type: ignore
 
             progress.write("Necrosis-correcting cell density map")
-            final_map = necrosis_correct_density(map_masked, necrosis_transformed)  #
+            final_map = necrosis_correct_density(corrected_map, necrosis_transformed)  #
 
             # (final_map * 255).astype("uint8").to_file(
             #     ensure_path_exists(out_path / "maps" / f"{map_name}_map_corrected.nii.gz")
             # )
         else:
-            final_map = map_masked
+            final_map = corrected_map
 
         if DEBUG:
 
@@ -95,26 +101,25 @@ def process_maps(
             #     {map_transformed.direction=}
             # """)
 
-            (map_dict["map_img"].img * 255).astype("uint8").to_file(
-                ensure_path_exists(out_path / "maps" / f"{map_name}_map_raw.png")
+            (map_dict["map_img"].img).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / map_name / f"map_raw.png")
             )
-            (map_processed * 255).astype("uint8").to_file(
-                ensure_path_exists(out_path / "maps" / f"{map_name}_map_processed.png")
+            (map_processed).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / map_name / f"map_processed.png")
             )
 
-            (map_masked * 255).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_masked.png"))
+            (map_masked * 255).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / map_name / f"masked.png"))
 
-            (map_transformed * 255).astype("uint8").to_file(
-                ensure_path_exists(out_path / "maps" / f"{map_name}_map.png")
-            )
-            (map_transformed * 255).to_file(ensure_path_exists(out_path / "maps" / f"{map_name}_map.tif"))
+            (map_transformed).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.png"))
+            (map_transformed).to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.tif"))
 
         if mri_key and dicom_params:
             # Create a volume with identical shape to the original MRI volume with the map inserted in the appropriate place
             create_hist_volume(
                 {mri_key: final_map},
                 dicom_params,
-                interp="genericLabel",
+                interp="nearestNeighbor",
+                is_map=True,
                 out_path=out_path / "maps" / f"{map_name}.nii.gz",
             )
 
@@ -122,7 +127,8 @@ def process_maps(
                 create_hist_volume(
                     {mri_key: map_transformed},
                     dicom_params,
-                    interp="genericLabel",
+                    interp="nearestNeighbor",
+                    is_map=True,
                     out_path=out_path / "maps" / f"{map_name}unmasked.nii.gz",
                 )
 
@@ -130,26 +136,42 @@ def process_maps(
         # print(mi_score)
 
         ret_dict[map_name] = {
-            "img": final_map,
+            "img": LazyAntsImage(final_map),
             "mutual_info": mi_score,
             "mri_key": mri_key,
             "map_name": map_name,
             "combine_type": map_dict["combine_type"],
         }
 
+        # If this slice is registered to multiple MRI slices (because its in the middle), we apply a weighting to its intensity
+        middle_slice_factor = None
+        if (
+            hist_params["split_multiple_register_to"]
+            and isinstance(slice_details["register_to"], list)
+            and len(slice_details["register_to"]) > 1
+        ):
+            if "middle_slice_factor" in slice_details:
+                middle_slice_factor = slice_details["middle_slice_factor"][mri_key]
+            else:
+                middle_slice_factor = 1 / len(slice_details["register_to"]) # Default to 0.5
+
+        if middle_slice_factor:
+            progress.write(f"Setting middle slice factor {middle_slice_factor} for {mri_key}!")
+            ret_dict[map_name]["img"].flags["middle_slice_factor"] = middle_slice_factor
+
     return ret_dict
 
 
-def sum_imgs(*imgs: ANTsImage) -> ANTsImage:
+def sum_imgs(imgs: list[ANTsImage]) -> ANTsImage:
     if not imgs:
         raise ValueError("Please provide at least one AntsImage.")
     return reduce(add, imgs)
 
 
-def mean_imgs(*imgs: ANTsImage) -> ANTsImage:
+def mean_imgs(imgs: list[ANTsImage]) -> ANTsImage:
     if not imgs:
         raise ValueError("Please provide at least one AntsImage.")
-    return ants.average_images(list(imgs), normalize=False)  # type: ignore
+    return ants.average_images(imgs, normalize=False)  # type: ignore
 
 
 combine_fns = {"add": sum_imgs, "mean": mean_imgs}
@@ -159,7 +181,7 @@ def combine_maps(maps: list[ProcessedMap]):
     from src.mycoloc.coloc import DEBUG
 
     # grouped_imgs[map_name][mri_key] = [img1, img2, ...]
-    grouped_imgs: defaultdict[str, defaultdict[str, list[ANTsImage]]] = defaultdict(lambda: defaultdict(list))
+    grouped_imgs: defaultdict[str, defaultdict[str, list[LazyAntsImage]]] = defaultdict(lambda: defaultdict(list))
     combine_types_map = {}
 
     # list[ProcessedMap] -> {"map1": {"mri_1": [img1, img2], "mri_2": [img3, img4]}, "map2": {...} }
@@ -182,19 +204,26 @@ def combine_maps(maps: list[ProcessedMap]):
 
     for map_name, mri_dict in grouped_imgs.items():
         # Get the combine type for this map name
-        combine_fn = combine_fns.get(combine_types_map[map_name], None)
+        combine_fn = combine_fns.get(combine_types_map[map_name])
 
         if not combine_fn:
             raise KeyError(f"Invalid combine type: {combine_types_map[map_name]}")
 
         for mri_key, imgs in mri_dict.items():
+            new_imgs: list[ANTsImage] = []
+            for img in imgs:
+                if "middle_slice_factor" in img.flags:
+                    corrected = LazyAntsImage(img.img * img.flags["middle_slice_factor"]).round()
+                    new_imgs.append(corrected)
+                else:
+                    new_imgs.append(img.img)
 
-            combined_out[map_name][mri_key] = combine_fn(*imgs)
+            combined_out[map_name][mri_key] = combine_fn(new_imgs)
 
-            if DEBUG:
-                combined_out[map_name][mri_key].to_file(f"{mri_key}-{map_name}-combined.nii.gz")
-                for i, img in enumerate(imgs, 1):
-                    img.to_file(f"{mri_key}-{map_name}{i}.nii.gz")
+            # if DEBUG:
+            #     combined_out[map_name][mri_key].to_file(f"{mri_key}-{map_name}-combined.nii.gz")
+            #     for i, img in enumerate(imgs, 1):
+            #         img.img.to_file(f"{mri_key}-{map_name}{i}.nii.gz")
 
     return dict(combined_out)
 

@@ -3,7 +3,7 @@
   "createTimestamp": 1781015769411,
   "modifyTimestamp": 1781015769411,
   "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/23yqp/project.qpproj",
-  "lastID": 55,
+  "lastID": 85,
   "images": [
     {
       "serverBuilder": {
@@ -73,7 +73,7 @@
         }
       },
       "entryID": 21,
-      "randomizedName": "65132dcb-8b50-41a9-a7e0-f14aafa7b0d5",
+      "randomizedName": "be76cde5-2845-4f34-9f37-7967a89e2e79",
       "imageName": "240920_GCBA_23r_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -146,7 +146,7 @@
         }
       },
       "entryID": 22,
-      "randomizedName": "b0c80533-de21-4df2-8e33-a0911c804cac",
+      "randomizedName": "91a038c5-161e-40ec-aeba-9c16f1eb02ab",
       "imageName": "240920_GCBA_23r_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -219,7 +219,7 @@
         }
       },
       "entryID": 23,
-      "randomizedName": "ddee5678-703e-49b8-95d4-5680f13a7a3a",
+      "randomizedName": "949a7021-63a8-4b95-9568-e269e1668b87",
       "imageName": "240920_GCBA_23r_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -292,7 +292,7 @@
         }
       },
       "entryID": 24,
-      "randomizedName": "6b89d359-0662-4b34-b0ef-8cfca76cfcd9",
+      "randomizedName": "c51caad9-6ebb-4dfb-a21e-175dc0a554e6",
       "imageName": "240920_GCBA_23r_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -365,7 +365,7 @@
         }
       },
       "entryID": 25,
-      "randomizedName": "bc1dead7-f45e-4eaf-bc99-08ad95cb1167",
+      "randomizedName": "875682d9-7deb-4fb1-8245-b10189f0e585",
       "imageName": "240920_GCBA_23r_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -438,7 +438,7 @@
         }
       },
       "entryID": 26,
-      "randomizedName": "10ab177c-0871-447a-b06a-a884f4777987",
+      "randomizedName": "fa5253af-02a6-49c7-99db-9abf9c4bf834",
       "imageName": "240920_GCBA_23s_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -511,7 +511,7 @@
         }
       },
       "entryID": 27,
-      "randomizedName": "d2f6dc1b-c87e-44df-ae6e-25d25923a38e",
+      "randomizedName": "cd6faa70-7286-4590-a7c8-d18105434ce8",
       "imageName": "240920_GCBA_23s_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -584,7 +584,7 @@
         }
       },
       "entryID": 28,
-      "randomizedName": "27391421-5982-4d4d-9e03-3b3bcb1b3c42",
+      "randomizedName": "23de5e32-7b0e-436a-a8ec-915f000a5ea5",
       "imageName": "240920_GCBA_23s_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -657,7 +657,7 @@
         }
       },
       "entryID": 29,
-      "randomizedName": "04ff5ede-cd4e-4dca-b893-8a9f6c9ff5c0",
+      "randomizedName": "379169f8-204f-4ed7-ab95-88bb622a7def",
       "imageName": "240920_GCBA_23s_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -730,7 +730,7 @@
         }
       },
       "entryID": 30,
-      "randomizedName": "520ae540-8119-47ba-a886-6c580534c791",
+      "randomizedName": "ee32f0ae-b0fc-4605-969b-22c0a96267c2",
       "imageName": "240920_GCBA_23s_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -803,7 +803,7 @@
         }
       },
       "entryID": 31,
-      "randomizedName": "ba6aa462-03ad-482a-b14d-f8042c300d3f",
+      "randomizedName": "43c46b2d-9b85-444e-98be-66733cf12078",
       "imageName": "240920_GCBA_23t_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -876,7 +876,7 @@
         }
       },
       "entryID": 32,
-      "randomizedName": "911f3a8d-e64f-4aac-a405-4424e2c5a1ba",
+      "randomizedName": "3e6bcbf8-9014-46cc-99bf-afd351a2a3aa",
       "imageName": "240920_GCBA_23t_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -949,7 +949,7 @@
         }
       },
       "entryID": 33,
-      "randomizedName": "e52477aa-2ff8-472e-b4de-53b85d3f4f37",
+      "randomizedName": "1e230d5b-0bab-461d-a08e-ff9694599995",
       "imageName": "240920_GCBA_23t_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -1022,7 +1022,7 @@
         }
       },
       "entryID": 34,
-      "randomizedName": "8f4b580f-3f8d-47c7-82b4-024ca257c689",
+      "randomizedName": "d602e876-1f66-49b4-9829-d682c69fa20d",
       "imageName": "240920_GCBA_23t_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -1095,7 +1095,7 @@
         }
       },
       "entryID": 35,
-      "randomizedName": "2933a54f-b747-4ef3-8672-33f366c30508",
+      "randomizedName": "51adf99a-1032-42d9-a7aa-43b7785f996b",
       "imageName": "240920_GCBA_23t_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -1168,7 +1168,7 @@
         }
       },
       "entryID": 36,
-      "randomizedName": "578ce8ce-6f56-417b-9965-6f41eeded3c9",
+      "randomizedName": "4896151f-564c-496d-935c-5aaaa768d5d4",
       "imageName": "240920_GCBA_23u_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -1241,7 +1241,7 @@
         }
       },
       "entryID": 37,
-      "randomizedName": "0062f9d5-3de7-4186-8abe-964e6f7bf1e2",
+      "randomizedName": "3117b9cf-ce09-4555-9673-ca9671169258",
       "imageName": "240920_GCBA_23u_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -1314,7 +1314,7 @@
         }
       },
       "entryID": 38,
-      "randomizedName": "30433fdb-1177-4d27-8adb-3fbdfa38db32",
+      "randomizedName": "b32dbfa3-18ab-44b4-b77b-1047e0faa340",
       "imageName": "240920_GCBA_23u_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -1387,7 +1387,7 @@
         }
       },
       "entryID": 39,
-      "randomizedName": "2b97bd9a-7b65-4f1a-bda1-a99990a30c2e",
+      "randomizedName": "c62a04cb-e41c-4e09-a3aa-1651ba0fdb80",
       "imageName": "240920_GCBA_23u_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -1460,7 +1460,7 @@
         }
       },
       "entryID": 40,
-      "randomizedName": "e556d564-e522-41d1-a9a1-9c89b1a7275d",
+      "randomizedName": "8498da1b-89c9-4976-ac1e-fb8bf15be821",
       "imageName": "240920_GCBA_23u_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -1533,7 +1533,7 @@
         }
       },
       "entryID": 41,
-      "randomizedName": "85f1a487-3445-417b-81c6-bf0d16147c70",
+      "randomizedName": "cac2d673-f416-48da-9150-a5a8d3f22d50",
       "imageName": "240920_GCBA_23w_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -1606,7 +1606,7 @@
         }
       },
       "entryID": 42,
-      "randomizedName": "539d8044-cb8e-4bc0-a646-e9417feaf0b3",
+      "randomizedName": "f88b1945-4d3b-4a4d-be30-2e1f23706b04",
       "imageName": "240920_GCBA_23w_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -1679,7 +1679,7 @@
         }
       },
       "entryID": 43,
-      "randomizedName": "12023231-5dfc-4541-9b62-81910e347723",
+      "randomizedName": "3f2e13c1-56d1-44ad-b47a-08d1a227fc7c",
       "imageName": "240920_GCBA_23w_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -1752,7 +1752,7 @@
         }
       },
       "entryID": 44,
-      "randomizedName": "e5b05e26-5ac0-4e51-86a1-7854cd406f17",
+      "randomizedName": "5cdce2cd-039f-40dc-a118-2cecd982d0c3",
       "imageName": "240920_GCBA_23w_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -1825,7 +1825,7 @@
         }
       },
       "entryID": 45,
-      "randomizedName": "6ea6b081-8f3a-42eb-b40e-24207da9a750",
+      "randomizedName": "cbbc3d7c-aa3e-4cb6-9853-87279225b908",
       "imageName": "240920_GCBA_23w_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -1898,7 +1898,7 @@
         }
       },
       "entryID": 46,
-      "randomizedName": "2c7b2a03-a415-4e65-a473-3a12528b7642",
+      "randomizedName": "8c8216ad-4210-42d5-8dc1-1461d6f8ac58",
       "imageName": "240920_GCBA_23x_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -1971,7 +1971,7 @@
         }
       },
       "entryID": 47,
-      "randomizedName": "32b57509-bea2-4768-a095-53b9d78ba0e8",
+      "randomizedName": "59107dc7-22c5-45de-a34e-6dadee7e9fb4",
       "imageName": "240920_GCBA_23x_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -2044,7 +2044,7 @@
         }
       },
       "entryID": 48,
-      "randomizedName": "3c0c0a67-daef-430a-8d87-bd1691f770ba",
+      "randomizedName": "1f6d0fcb-e301-4ac7-a72e-9345004f13d0",
       "imageName": "240920_GCBA_23x_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -2117,7 +2117,7 @@
         }
       },
       "entryID": 49,
-      "randomizedName": "3b901cc9-f292-4ba3-bab8-95d29b6cd62f",
+      "randomizedName": "ebe94b02-2ba7-4378-a835-32e71e3446f2",
       "imageName": "240920_GCBA_23x_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -2190,7 +2190,7 @@
         }
       },
       "entryID": 50,
-      "randomizedName": "fef89e15-221e-44f8-be21-d076d13b1394",
+      "randomizedName": "c63e3b1c-4344-4dfe-8b3b-0d23edb14350",
       "imageName": "240920_GCBA_23x_HnE20x_S5.svs",
       "metadata": {},
       "tags": []
@@ -2200,10 +2200,70 @@
         "builderType": "uri",
         "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
         "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S1.svs",
-        "args": []
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23y_HnE20x_S1.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
       },
       "entryID": 51,
-      "randomizedName": "cd4319b9-71f4-4b94-ae04-fd7ea83a9b7b",
+      "randomizedName": "6c5f0f66-60f8-4037-8927-cbd0a1af9ff9",
       "imageName": "240920_GCBA_23y_HnE20x_S1.svs",
       "metadata": {},
       "tags": []
@@ -2213,10 +2273,70 @@
         "builderType": "uri",
         "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
         "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S2.svs",
-        "args": []
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23y_HnE20x_S2.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
       },
       "entryID": 52,
-      "randomizedName": "732ad213-f875-47d3-bdf5-d04eff1e623d",
+      "randomizedName": "29322b12-ba7b-467d-b96f-bd80bbaead88",
       "imageName": "240920_GCBA_23y_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
@@ -2226,10 +2346,70 @@
         "builderType": "uri",
         "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
         "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S3.svs",
-        "args": []
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23y_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
       },
       "entryID": 53,
-      "randomizedName": "58da8256-91d4-4ec8-8678-9ac309be4782",
+      "randomizedName": "b5960eac-7e07-48f9-a983-2b443f7643f1",
       "imageName": "240920_GCBA_23y_HnE20x_S3.svs",
       "metadata": {},
       "tags": []
@@ -2239,10 +2419,70 @@
         "builderType": "uri",
         "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
         "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S4.svs",
-        "args": []
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23y_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 118784,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 118784
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 29696
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 7424
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
       },
       "entryID": 54,
-      "randomizedName": "f7aaf8a3-cbf5-4ebb-8b0b-dbc891734854",
+      "randomizedName": "659b2ecc-845b-41e1-8c31-6edf461ce2d3",
       "imageName": "240920_GCBA_23y_HnE20x_S4.svs",
       "metadata": {},
       "tags": []
@@ -2252,11 +2492,436 @@
         "builderType": "uri",
         "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
         "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23y/240920_GCBA_23y_HnE20x_S5.svs",
-        "args": []
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23y_HnE20x_S5.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
       },
       "entryID": 55,
-      "randomizedName": "e5256085-3934-46cd-abd6-8b761d24a9f1",
+      "randomizedName": "2575a1a8-f528-4743-b8f6-4f8ccefa8c89",
       "imageName": "240920_GCBA_23y_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23p/240920_GCBA_23p_HnE20x_S3.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23p_HnE20x_S3.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 61,
+      "randomizedName": "83016c1d-3693-40b5-9e37-1a3ead0f00b0",
+      "imageName": "240920_GCBA_23p_HnE20x_S3.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23p/240920_GCBA_23p_HnE20x_S4.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23p_HnE20x_S4.svs",
+          "width": 45056,
+          "height": 49152,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 49152
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 12288
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3072
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 62,
+      "randomizedName": "f6bdb4ae-5fbc-4251-98a5-2e104b4d2c2b",
+      "imageName": "240920_GCBA_23p_HnE20x_S4.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23p/240920_GCBA_23p_HnE20x_S5.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23p_HnE20x_S5.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 63,
+      "randomizedName": "1b7fd263-89ca-4178-b2ce-7f7376ad4c6c",
+      "imageName": "240920_GCBA_23p_HnE20x_S5.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23p/240920_GCBA_23p_HnE20x_S1.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23p_HnE20x_S1.svs",
+          "width": 69632,
+          "height": 110592,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 69632,
+              "height": 110592
+            },
+            {
+              "downsample": 4.0,
+              "width": 17408,
+              "height": 27648
+            },
+            {
+              "downsample": 16.0,
+              "width": 4352,
+              "height": 6912
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 64,
+      "randomizedName": "b0dfec07-2edf-48ef-ad5c-0e974a48d749",
+      "imageName": "240920_GCBA_23p_HnE20x_S1.svs",
+      "metadata": {},
+      "tags": []
+    },
+    {
+      "serverBuilder": {
+        "builderType": "uri",
+        "providerClassName": "qupath.lib.images.servers.openslide.OpenslideServerBuilder",
+        "uri": "file:/C:/Users/sam_m/Documents/Glasgow/Diss/py/HnE/23p/240920_GCBA_23p_HnE20x_S2.svs",
+        "args": [],
+        "metadata": {
+          "name": "240920_GCBA_23p_HnE20x_S2.svs",
+          "width": 45056,
+          "height": 53248,
+          "sizeZ": 1,
+          "sizeT": 1,
+          "channelType": "DEFAULT",
+          "isRGB": true,
+          "pixelType": "UINT8",
+          "levels": [
+            {
+              "downsample": 1.0,
+              "width": 45056,
+              "height": 53248
+            },
+            {
+              "downsample": 4.0,
+              "width": 11264,
+              "height": 13312
+            },
+            {
+              "downsample": 16.0,
+              "width": 2816,
+              "height": 3328
+            }
+          ],
+          "channels": [
+            {
+              "name": "Red",
+              "color": -65536
+            },
+            {
+              "name": "Green",
+              "color": -16711936
+            },
+            {
+              "name": "Blue",
+              "color": -16776961
+            }
+          ],
+          "pixelCalibration": {
+            "pixelWidth": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "pixelHeight": {
+              "value": 0.242591,
+              "unit": "µm"
+            },
+            "zSpacing": {
+              "value": 1.0,
+              "unit": "z-slice"
+            },
+            "timeUnit": "SECONDS",
+            "timepoints": []
+          },
+          "magnification": 41.2217,
+          "preferredTileWidth": 256,
+          "preferredTileHeight": 256
+        }
+      },
+      "entryID": 65,
+      "randomizedName": "65074b6f-b71a-47f6-940a-ef570c7a444b",
+      "imageName": "240920_GCBA_23p_HnE20x_S2.svs",
       "metadata": {},
       "tags": []
     }
