@@ -46,7 +46,7 @@ jobs:
           mv docs/mycoloc/* docs/
           rm -r docs/mycoloc
 
-          - name: Upload artifact
-            uses: actions/upload-pages-artifact@v3
-            with:
-              path: './docs'
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs'
