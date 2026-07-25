@@ -40,7 +40,7 @@ jobs:
         run: |
           # Execute pdoc within the poetry virtual environment
           # REPLACE 'my_package' with your actual module name
-          poetry run pdoc --html --output-dir docs mycoloc
+          poetry run pdoc3 --html --output-dir docs src/mycoloc
           
           # Move files to root so GitHub Pages serves them at the base URL
           mv docs/mycoloc/* docs/
