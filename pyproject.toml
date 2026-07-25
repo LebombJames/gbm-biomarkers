@@ -30,3 +30,8 @@ classifiers = ["Operating System :: OS Independent"]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+docs = [
+    "pdoc3 (>=0.11.6,<0.12.0)"
+]
