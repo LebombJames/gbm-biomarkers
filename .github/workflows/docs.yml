@@ -1,0 +1,34 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
+      # Install poetry via pipx (pre-installed on the runner) before setting up Python
+      - name: Install Poetry
+        run: pipx install poetry
+  
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Match your project's version
+          cache: 'poetry'        # Automatically caches your dependencies based on poetry.lock
+  
+      - name: Install dependencies
+        run: poetry install
+  
+      - name: Generate pdoc3 documentation
+        run: |
+          # Execute pdoc within the poetry virtual environment
+          # REPLACE 'my_package' with your actual module name
+          poetry run pdoc --html --output-dir docs my_package
+          
+          # Move files to root so GitHub Pages serves them at the base URL
+          mv docs/my_package/* docs/
+          rm -r docs/my_package
+
+          - name: Upload artifact
+            uses: actions/upload-pages-artifact@v3
+            with:
+              path: './docs'
