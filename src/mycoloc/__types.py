@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypedDict, TypeVar
 
 import numpy as np
 import numpy.typing as npt
-import seaborn
-import seaborn.objects
 from ants import ANTsImage
 from matplotlib.figure import Figure
 from skimage.measure._regionprops import RegionProperties
@@ -148,7 +146,7 @@ class RegPlots(TypedDict):
 
 
 class RegPlot(TypedDict):
-    img: ANTsImage | dict[str, ANTsImage] | dict[str, Any] | seaborn.objects.Plot | Figure
+    img: ANTsImage | dict[str, ANTsImage] | dict[str, Any] | Figure
     mri_key: str
     hist_name: str | None
     animal_name: NotRequired[str]
