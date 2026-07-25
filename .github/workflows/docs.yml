@@ -34,7 +34,7 @@ jobs:
           cache: 'poetry'        # Automatically caches your dependencies based on poetry.lock
   
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-groups
   
       - name: Generate pdoc3 documentation
         run: |
