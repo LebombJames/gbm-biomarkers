@@ -31,6 +31,9 @@ from src.mycoloc.utils import ensure_path_exists, func_timer, pretty_hist_filena
 def run_registration_in_thread(
     dicom_params: DicomParams, hist_params: HistParams, reg_params: dict[str, Any], run_name="coloc", strict=True
 ):
+    """
+    Helper function to be create a task object to be used with `run_many_registrations`.
+    """
     return {
         "dicom_params": dicom_params,
         "hist_params": hist_params,
@@ -42,7 +45,11 @@ def run_registration_in_thread(
 
 async def run_many_registrations(jobs: list[dict[str, Any]], max_workers: int = 3) -> list[RegPlots | None]:
     """
-    Run a series of registrations simultaneously. No more than `max_tasks` may run at once. Lower this number if you experience out of memory errors.
+    Run a series of registrations across multiple threads, improving performance by avoiding the GIL.
+
+    Args:
+        jobs (list of dicts): Task dicts produced by `run_registration_in_thread`
+        max_workers (int): No more than this number of workers may run at once. Lower this number if you experience out of memory errors.
 
     Example:
     ```python
@@ -66,13 +73,29 @@ async def run_many_registrations(jobs: list[dict[str, Any]], max_workers: int = 
             task = loop.run_in_executor(pool, func)
             tasks.append(task)
 
-        # Gather results in the exact order they were submitted
         return await asyncio.gather(*tasks)
 
 
 def run_registration(
     dicom_params: DicomParams, hist_params: HistParams, reg_params: dict[str, Any], run_name="coloc", strict=True
 ) -> RegPlots | None:
+    """
+    Run a registration between the MRIs in `dicom_params` and the histologies in `hist_params`.
+    This is the main function end-users should interact with (or the multi-threaded equivalents)
+
+    Args:
+        dicom_params (DicomParams): MRI images and parameters
+        hist_params (HistParams): Histology (and map) images and parameters
+        reg_params (dict[str, Any]): Parameters for `ants.registration`. Also includes `out_prefix`, which determines the output files.
+        run_name (str, optional): Name of this registration, used in diagnostic plots and to distinguish runs across threads. Defaults to "coloc".
+        strict (bool, optional): Throw if a registration fails, normally due to a very poor overlap. Defaults to True.
+
+    Raises:
+        RuntimeError: _description_
+
+    Returns:
+        RegPlots | None: _description_
+    """
     from src.mycoloc.utils import progress
 
     mri_slices = dicom_params["slices"]
@@ -86,7 +109,7 @@ def run_registration(
         "transformed_original": [],
         "mri_overview": [],
     }
-    df_list: list[dict[str, Any]] = []
+    map_df_list: list[dict[str, str | float]] = []
     failures = 0
 
     base_out_path = Path("out") / reg_params["out_prefix"]
@@ -94,21 +117,22 @@ def run_registration(
     if hist_params["loc_within"]:
         hist_allocation = register_hist_within(hist_slices, hist_params, dicom_params, return_reg_dict=False)
     else:
+        # Group the histology based on which MRI slice they align to
         hist_allocation = allocate_hists(hist_slices, dicom_params)
 
     # progress.reset(total=sum(len(v) for v in hist_allocation.values()))
     # print({key: [v["img"].path.name for v in val] for key, val in hist_allocation.items()})
 
     for mri_key, mri_dict in mri_slices.items():
-
         map_img = mri_dict["img"]
 
         # Make any (X,Y,1) images (X,Y)
         mri_zero: ANTsImage = ants.slice_image(map_img.img, axis=-1, idx=0)  # type: ignore
-        mri_zero.set_direction(np.eye(2))
+        mri_zero.set_direction(np.eye(2))  # Sanity check
 
+        # Process MRI
         progress.write(f"{run_name} | Processing {mri_key}")
-        mri_prepared_dict = prepare_mri(mri_zero, base_out_path / f"{mri_key}_overview.png")
+        mri_prepared_dict = prepare_mri(mri_zero, base_out_path / "MRI" / f"{mri_key}_overview.png")
         mri_processed = mri_prepared_dict["img"]
         mri_mask = mri_prepared_dict["mask"]
 
@@ -122,11 +146,12 @@ def run_registration(
         )
 
         if DEBUG:
-            mri_processed.astype("uint8").to_file(ensure_path_exists(base_out_path / f"{mri_key}-processed.png"))
+            mri_processed.to_file(ensure_path_exists(base_out_path / "MRI" / f"{mri_key}-processed.nii.gz"))
 
         for slice_details in hist_allocation.get(mri_key, []):
             progress.write(f"{run_name} | Processing histology {slice_details['img'].path.name}")
 
+            # Get greyscale Histology image and process
             hist_zero = slice_details["img"].greyscale_img(hist_params["greyscale_type"])
             hist_out_path = base_out_path / slice_details["img"].path.name / mri_key
 
@@ -137,14 +162,14 @@ def run_registration(
             hist_mask = hist_processed["mask"]
 
             if DEBUG:
-                hist_img.astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_hist.png"))
-                (hist_mask * 255).astype("uint8").to_file(ensure_path_exists(hist_out_path / f"final_mask.png"))
+                hist_img.to_file(ensure_path_exists(hist_out_path / f"final_hist.svs"))
+                (hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"final_mask.svs"))
 
             affine_init = None
             if reg_params["use_initial_affine"]:
                 progress.write(f"{run_name} | Generating affine initializer")
                 affine_init = [
-                    ants.affine_initializer(
+                    ants.affine_initializer(  # type: ignore
                         fixed_image=mri_processed,
                         moving_image=hist_img,
                         mask=mri_mask,
@@ -155,7 +180,7 @@ def run_registration(
 
             progress.write(f"{run_name} | Running registration")
             try:
-                registered: RegistrationDict = ants.registration(
+                registered: RegistrationDict = ants.registration(  # type: ignore
                     fixed=mri_processed,
                     moving=hist_img,
                     mask=mri_mask,
@@ -181,19 +206,7 @@ def run_registration(
                     continue
 
             if DEBUG:
-                #     print(f"""
-                #         {hist_img.origin=}
-                #         {mri_processed.origin=}
-                #         {hist_mask.origin=}
-                #         {mri_mask.origin=}
-                #         """)
-
-                #     print("MRI Mask unique values:", np.unique(mri_mask.numpy()))
-                #     print("Hist Mask unique values:", np.unique(hist_mask.numpy()))
-
-                #     print(f"{registered['warpedmovout'].shape=}, {mri_processed.shape=}")
-                registered["warpedmovout"].astype("uint8").to_file(ensure_path_exists(hist_out_path / f"coloc.png"))
-                registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"coloc.nii.gz"))
+                registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"registered_hist.svs"))
 
             progress.write(f"{run_name} | Transforming the original high-res histology")
             transformed_original_hist = transform_original_hist(
@@ -210,19 +223,17 @@ def run_registration(
                 interpolator="genericLabel",
             )  # type: ignore
 
-            labels = ants.label_overlap_measures(transformed_hist_mask, mri_mask)
+            labels = ants.label_overlap_measures(transformed_hist_mask, mri_mask)  # type: ignore
             labels.rename(
                 columns={"UnionOverlap": "UnionOverlap (Jaccard)", "MeanOverlap": "MeanOverlap (Dice)"}, inplace=True
             )
-            labels.to_csv(hist_out_path / "label_measures.csv", index=False)
+            labels.to_csv(hist_out_path / "overlap_measures.csv", index=False)
             # UnionOverlap = Jaccard, MeanOverlap = Dice. TotalOrTargetOVerlap = Target overlap
 
             if slice_details["maps"]:
 
                 if DEBUG:
-                    (transformed_hist_mask * 255).astype("uint8").to_file(
-                        ensure_path_exists(hist_out_path / f"transformed_mask.png")
-                    )
+                    (transformed_hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"transformed_mask.svs"))
 
                 maps = process_maps(
                     slice_details,
@@ -236,7 +247,9 @@ def run_registration(
                 )
 
                 for map_name, map_dict in maps.items():
-                    progress.write(f"{run_name} | Map {map_name} computed with MI: {map_dict['mutual_info']}")
+                    progress.write(
+                        f"{run_name} | Map {map_name} computed with MI: {map_dict['mutual_info']}. (Control: {map_dict['control_mi']})"
+                    )
                     out_maps.append(map_dict)
 
                     # if pretty_hist_filename(slice_details["img"].path.name) == "23R-1":
@@ -257,12 +270,13 @@ def run_registration(
                         }
                     )
 
-                    df_list.append(
+                    map_df_list.append(
                         {
                             "hist_name": pretty_hist_filename(slice_details["img"].path.name),
                             "map_name": map_name,
                             "mi": map_dict["mutual_info"],
                             "mri_key": mri_key,
+                            "no_reg_mi": map_dict["control_mi"],
                         }
                     )
 
@@ -287,11 +301,13 @@ def run_registration(
             progress.write("---")
             gc.collect()
 
+    progress.write("Finished registrations. Creating diagnostic outputs.")
+
     combined = combine_maps(out_maps)
 
     # combine_maps_integral(out_maps, dicom_params["slices"])
 
-    map_df = DataFrame(df_list, copy=False)
+    map_df = DataFrame(map_df_list, copy=False)
     try:
         map_df.to_csv(ensure_path_exists(Path(base_out_path) / "maps.csv"), index=False)
     except PermissionError:
@@ -301,7 +317,7 @@ def run_registration(
         create_hist_volume(
             map_group,
             dicom_params,
-            out_path=base_out_path / map_key / "combined.nii.gz",
+            out_path=base_out_path / "sih_maps" / map_key / "combined.nii.gz",
             interp="nearestNeighbor",
             is_map=True,
         )
@@ -309,7 +325,7 @@ def run_registration(
             create_hist_volume(
                 {mri_key: map_img},
                 dicom_params,
-                out_path=base_out_path / map_key / f"{mri_key}-{map_key}.nii.gz",
+                out_path=base_out_path / "sih_maps" / map_key / f"{mri_key}-{map_key}.nii.gz",
                 interp="nearestNeighbor",
                 is_map=True,
             )
@@ -319,10 +335,10 @@ def run_registration(
         progress.write(f"{run_name} | Registration complete with {failures} failures!")
 
     gc.collect()
-    collate_checkerboard_plots(plots["checkerboard"], run_name, out_path=Path())
-    # collate_mri_plots(plots["mri_overview"], run_name, out_path=Path())
-    # collate_transformed_originals(plots["transformed_original"], run_name, out_path=Path())
-    # collate_map_plots(plots["map_overview"], run_name, out_path=Path())
+    collate_checkerboard_plots(plots["checkerboard"], run_name, out_path=base_out_path)
+    # collate_mri_plots(plots["mri_overview"], run_name, out_path=base_out_path)
+    # collate_transformed_originals(plots["transformed_original"], run_name, out_path=base_out_path)
+    # collate_map_plots(plots["map_overview"], run_name, out_path=base_out_path)
     # return plots
 
 
@@ -364,8 +380,8 @@ def build_dicom_params(path: Path, slices_idx: list[int]) -> DicomParams:
 
     Args:
         path (Path): The path to a folder of dicoms
-
-        slices (list of ints): List indices of slices (starting at 0) to be used in the registration. E.g 7 = MRIm08.dcm
+        slices_idx (list of ints): List indices of slices (starting at 0) that correspond to the histology
+          to be used in the registration. E.g 7 = MRIm08.dcm
     """
     if not path.exists():
         raise FileNotFoundError(f"{path} doesn't exist!")
@@ -398,7 +414,6 @@ def build_hist_slices(
     Create a list of HistSlicesDicts based on histology files and maps in a folder.
 
     Expected folder structure:
-
     ```
     root/
     ├── img1.svs
@@ -421,7 +436,7 @@ def build_hist_slices(
 
         map_dir (Path, optional): The path to `maps/` as in the diagram above, defaults to `root/maps`.
 
-        necrosis_dir_name (Path), optional: The name of the necrosis directory within `maps`, relative to `maps`. Defaults to `necrosis`.
+        necrosis_dir_name (Path, optional): The name of the necrosis directory within `maps`, relative to `maps`. Defaults to `necrosis`.
 
         params (dict[int, Any], optional): Elements of HistSlicesDict to apply to the output dict of the element at the array index corresponding to key. Files read through `path` are sorted alphabetically, so the order of the return list is always the same. E.g `{3: {"rotation": 100}}` will set the rotation of the element at array index 3 (starts at 0!).
     """
@@ -485,14 +500,17 @@ def build_hist_slices(
     return out
 
 
+# The point of this section is to construct the parameter objects for the MRI and Histology images.
+# These contain paths to the images, as well as allow customisation of the registration workflow, in order to perform
+# the tests in Results
 if __name__ == "__main__":
-    dicom23r = build_dicom_params(Path("23R_SC2"), [6, 7])
-    dicom23s = build_dicom_params(Path("23S_SC2"), [6, 7])
-    dicom23t = build_dicom_params(Path("23T_SC2"), [7, 8])
-    dicom23u = build_dicom_params(Path("23U_SC2"), [8, 9])
-    dicom23w = build_dicom_params(Path("23W_SC2"), [7, 8])
-    dicom23x = build_dicom_params(Path("23X_SC2"), [7, 8])
-    dicom23y = build_dicom_params(Path("23Y_SC2"), [7, 8])
+    dicom23r = build_dicom_params(Path("23R_SC2"), slices_idx=[6, 7])
+    dicom23s = build_dicom_params(Path("23S_SC2"), slices_idx=[6, 7])
+    dicom23t = build_dicom_params(Path("23T_SC2"), slices_idx=[7, 8])
+    dicom23u = build_dicom_params(Path("23U_SC2"), slices_idx=[8, 9])
+    dicom23w = build_dicom_params(Path("23W_SC2"), slices_idx=[7, 8])
+    dicom23x = build_dicom_params(Path("23X_SC2"), slices_idx=[7, 8])
+    dicom23y = build_dicom_params(Path("23Y_SC2"), slices_idx=[7, 8])
 
     base_hist: HistParams = {
         "greyscale_type": "mean",
@@ -501,12 +519,14 @@ if __name__ == "__main__":
         "split_multiple_register_to": False,
     }  # type: ignore
 
+    # base_hist2 = HistParamsDC()
+
     base_hist_slice_params = {
-        0: {"register_to": ["mri_1", "mri_2"], "rotation": 110},
-        1: {"register_to": ["mri_1", "mri_2"], "rotation": 110},
+        0: {"register_to": "mri_1", "rotation": 110},
+        1: {"register_to": "mri_1", "rotation": 110},
         2: {"register_to": ["mri_1", "mri_2"], "rotation": 110},
-        3: {"register_to": ["mri_1", "mri_2"], "rotation": 110},
-        4: {"register_to": ["mri_1", "mri_2"], "rotation": 110},
+        3: {"register_to": "mri_2", "rotation": 110},
+        4: {"register_to": "mri_2", "rotation": 110},
     }
 
     hist23p: HistParams = {
@@ -612,43 +632,46 @@ if __name__ == "__main__":
     async def main():
         tasks = []
         for animal, param in all_params.items():
-            # for mode in ["h&e", "mean", {"red", "blue"}]:
-            #     param["hist"]["greyscale_type"] = mode
+            
+            for mode in ["h&e", "mean", {"red", "blue"}]:
+                param["hist"]["greyscale_type"] = mode
 
-            #     string_dict = {
-            #         "h&e": "H&E",
-            #         "mean": "RGB Mean",
-            #     }
-            #     if mode == {"red", "blue"}:
-            #         pretty_string = "RB Mean"
-            #     else:
-            #         pretty_string = string_dict[mode]
+                string_dict = {
+                    "h&e": "H&E",
+                    "mean": "RGB Mean",
+                }
+                if mode == {"red", "blue"}:
+                    pretty_string = "RB Mean"
+                else:
+                    pretty_string = string_dict[mode]
 
-            tasks.append(
-                run_registration_in_thread(
-                    dicom_params=param["mri"],
-                    hist_params=param["hist"],
-                    reg_params=reg_params({"out_prefix": Path(f"{animal}_mri_1")}),
-                    run_name=f"{animal}_mri_1",
+                tasks.append(
+                    run_registration_in_thread(
+                        dicom_params=param["mri"],
+                        hist_params=param["hist"],
+                        reg_params=reg_params({"out_prefix": Path("components") / animal / mode}),
+                        run_name=f"{animal} {pretty_string}",
+                        strict=False,
+                    )
                 )
-            )
 
-            # for reg in [
-            #     # "Rigid", "Affine", "SyNOnly",
-            #     "SyN",
-            #     "SyNRA",
-            # ]:
-            #     reg_params_dict = reg_params({"out_prefix": Path(f"{animal}_{reg}"), "type_of_transform": reg})
+            for reg in [
+                "Rigid",
+                "Affine",
+                "SyNOnly",
+                "SyN",
+                "SyNRA",
+            ]:
 
-            #     tasks.append(
-            #         run_registration_in_thread(
-            #             dicom_params=param["mri"],
-            #             hist_params=param["hist"],
-            #             reg_params=reg_params_dict,
-            #             run_name=f"{animal} {reg}",
-            #             strict=False,
-            #         )
-            #     )
+                tasks.append(
+                    run_registration_in_thread(
+                        dicom_params=param["mri"],
+                        hist_params=param["hist"],
+                        reg_params=reg_params({"out_prefix": Path("reg_types") / animal / reg}),
+                        run_name=f"{animal} {reg}",
+                        strict=False,
+                    )
+                )
 
         await run_many_registrations(tasks, 2)
 

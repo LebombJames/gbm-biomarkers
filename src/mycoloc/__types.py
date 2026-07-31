@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypedDict, TypeVar
-
-import numpy as np
-import numpy.typing as npt
-from ants import ANTsImage
-from matplotlib.figure import Figure
-from skimage.measure._regionprops import RegionProperties
+from dataclasses import dataclass, field
 from typing_extensions import NotRequired
+from pathlib import Path
 
 if TYPE_CHECKING:
+    import numpy as np
+    import numpy.typing as npt
+    from ants import ANTsImage
+    from matplotlib.figure import Figure
+    from skimage.measure._regionprops import RegionProperties
     from src.mycoloc.LazyAntsImage import LazyAntsImage
 
 
@@ -49,8 +49,10 @@ class DicomParams(TypedDict):
     volume: ANTsImage
 
 
-B = TypeVar("B", Literal["1"], Literal["2"])
-a = Literal[f"mri_{B}"]
+@dataclass
+class DicomParamsDC:
+    slices: dict[str, MRISliceDict]
+    volume: ANTsImage
 
 
 class MRISliceDict(TypedDict):
@@ -71,11 +73,35 @@ class HistParams(TypedDict):
     fixed_image: int
     """Array index of the fixed image if localising within hist slides. `2` (Slide 3) by default"""
     # use_masks: bool
-    # """
-    # Threshold slides before registration. A `mask` value can be provided in each slice, otherwise a mask will be calculated using ants.
-    # """
     greyscale_type: GreyscaleModes
     split_multiple_register_to: bool
+    """If true, histology slices with an array of MRI keys to register to will have their pixel intensity split amongst them. By default, this is 1/n, where n is the length of `register_to`, but `middle_slice_factor` can customise this."""
+
+
+@dataclass
+class HistParamsDC:
+    slices: list[HistSlicesDict] = field(default_factory=list)
+    loc_within: bool = False
+    """Localise the slices against slide 3 before colocalising against the MRI"""
+    fixed_image: int = 2
+    """Array index of the fixed image if localising within hist slides. `2` (Slide 3) by default"""
+    greyscale_type: GreyscaleModes = "mean"
+    """How to reduce an RGB image to a single channel.
+
+    `"mean"`: average RGB channels together.
+
+    Set including `"red"`, `"green"` or `"blue"`: Average specified channels together. All 3 is equivalent to `"mean"`. A single channel is equivalent to passing the string alone.
+
+    `"red"`, `"green"`, or `"blue"`: Use only the specified channel
+
+    `"h"`: Haematoxylin OD
+
+    `"e"`: Eosin OD
+
+    `"h&e"`: H&E OD
+
+    """
+    split_multiple_register_to: bool = True
     """If true, histology slices with an array of MRI keys to register to will have their pixel intensity split amongst them. By default, this is 1/n, where n is the length of `register_to`, but `middle_slice_factor` can customise this."""
 
 
@@ -83,6 +109,13 @@ class RegParams(TypedDict):
     type_of_transform: str
     out_prefix: Path
     use_initial_transform: bool
+
+
+@dataclass
+class RegParamsDC:
+    type_of_transform: str = "SyN"
+    out_prefix: Path = Path("out")
+    use_initial_transform: bool = False
 
 
 class AnimalParams(TypedDict):
@@ -98,6 +131,17 @@ class HistSlicesMaps(TypedDict):
     Whether to apply Tumour% necrosis correction (use only for cell density maps)
     """
     combine_type: Literal["add", "mean"]
+
+
+@dataclass
+class HistSlicesMapsDC:
+    map_img: LazyAntsImage
+    """The image of the map"""
+    necrosis_correct: bool = False
+    """
+    Whether to apply Tumour% necrosis correction (use only for cell density maps)
+    """
+    combine_type: Literal["add", "mean"] = "add"
 
 
 class HistSlicesDict(TypedDict):
@@ -124,7 +168,32 @@ class HistSlicesDict(TypedDict):
     "The necrosis map used to correct the map images in `maps`"
 
 
-T = TypeVar("T", "LazyAntsImage", RegistrationDict, ANTsImage, HistSlicesDict)
+@dataclass
+class HistSlicesDictDC:
+    img: LazyAntsImage
+    crop: ROI
+    """
+    The indicies to crop the image with. `((X1, Y1), (X2, Y2))`, where `X1` and `Y1` are
+    the minimum indicies to crop at, and `X2` and `Y2` are the maximum to crop at.
+
+    Note: Cropping is applied *before* rotation.
+    """
+    middle_slice_factor: dict[str, float]  # = {"mri_1": 0.5, "mri_2": 0.5}
+    """If `register_to` is a list, a dict of floats (0,1] of weightings to apply for the slice at the MRI slice corresponding to the key. E.g {"mri_1": 0.5, "mri_2": 0.5} will halve the slice's intensities across its two MRI slices."""
+    rotation: int = 0
+    """A clockwise rotation in degrees to apply to the image.
+
+    Note: Rotation is applied *after* cropping.
+    """
+    maps: dict[str, HistSlicesMaps] = field(default_factory=dict)
+    """Maps computed using `img`, which will be registered using the same transform calculated on `img` from the registration."""
+    register_to: str | list[str] = ""
+    "The key of the MRI slide to register this histology to. If a list of strings, the histology will be allocated to all corresponding MRI slides. See `DicomParams`."
+    necrosis_map: LazyAntsImage | None = None
+    "The necrosis map used to correct the map images in `maps`"
+
+
+T = TypeVar("T", "LazyAntsImage", RegistrationDict, "ANTsImage", HistSlicesDict)
 AllocatedHists = dict[str, list[T]]
 """Group hist slides based on which MRI slice they should be registered to. The values may be either an Ants Image of the moving image registered, or the dict returned from the registration, which allows for the transformation function to be accessed."""
 
@@ -166,6 +235,7 @@ class ProcessedMap(TypedDict):
     mri_key: str
     map_name: str
     combine_type: Literal["add", "mean"]
+    control_mi: float
 
 
 class GridDims(NamedTuple):

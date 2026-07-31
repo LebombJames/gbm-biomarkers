@@ -1,19 +1,26 @@
-import gc
 import re
-from math import ceil, sqrt
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import matplotlib
 import numpy as np
-import pandas as pd
 from ants import ANTsImage
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
-from src.mycoloc.__types import *
-from src.mycoloc.utils import animal_id_from_filename, ensure_path_exists, n_subplots, pretty_hist_filename, pretty_mri_key
+from src.mycoloc.utils import (
+    animal_id_from_filename,
+    create_subplot_grid,
+    ensure_path_exists,
+    pretty_hist_filename,
+    pretty_mri_key,
+)
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from src.mycoloc.__types import ROI, RegPlot
 
 matplotlib.use("agg")
 
@@ -21,7 +28,7 @@ matplotlib.use("agg")
 def plot_roi_intensity(
     map_registered: ANTsImage,
     mri: ANTsImage,
-    roi: ROI,
+    roi: "ROI",
     mi: float,
     out_path: Path,
     hist_title: str | None = "Map",
@@ -53,26 +60,6 @@ def plot_roi_intensity(
 
     ax1.scatter(x=masked_hist, y=masked_mri, color="blue", s=2)
 
-    # brain_mask = normalised_map > 0
-
-    # # NEW: Background mask where Map is 0 AND MRI is > 0
-    # background_mask = (normalised_map == 0) & (normalised_mri > 0)
-
-    # # 2. Extract data for the valid brain region (Blue points)
-    # x_brain = normalised_map[brain_mask]
-    # y_brain = normalised_mri[brain_mask]
-
-    # # 3. Extract data for the refined background region (Red points)
-    # x_background = normalised_map[background_mask]
-    # y_background = normalised_mri[background_mask]
-
-    # # 4. Plot both sets on the same axis
-    # # Plot the main brain data
-    # ax1.scatter(x_brain, y_brain, color='blue', s=1, label='Brain (Map > 0)')
-
-    # # Plot the filtered background data on top
-    # ax1.scatter(x_background, y_background, color='red', s=1, label='Map = 0 & MRI > 0')
-
     ax1.set_title(f"{title + ' ' if title else ''} (MI: {round(mi*-1, 3)})", fontsize=22)
     ax1.set(xlim=[-0.05, 1.05], ylim=[-0.05, 1.05])
     ax1.tick_params(axis="both", labelsize=22)
@@ -93,8 +80,6 @@ def plot_roi_intensity(
 
     fig.savefig(ensure_path_exists(out_path), dpi=300)
     return fig
-    # plt.close(fig)
-    # plt.show()
 
 
 def plot_mri_before_after(
@@ -127,107 +112,7 @@ def plot_mri_before_after(
     return fig
 
 
-def plot_for_runs(runs: list[RegPlots], out_path: Path | None = None):
-
-    for i, run in enumerate(runs):
-
-        # CHECKERBOARD
-        ch_fig = Figure(figsize=(8, 8))
-        canvas = FigureCanvasAgg(ch_fig)
-        ch_fig.suptitle(f"Checkerboards ({run['name']})", fontsize=16, fontweight="bold")
-
-        axes = ch_fig.subplots(nrows=2, ncols=2)
-        if isinstance(axes, np.ndarray):
-            axes = axes.flat
-
-        for ax, checkerboard in zip(axes, run["checkerboard"]):
-            ax.imshow(cast(ANTsImage, checkerboard["img"]).numpy().T, cmap="gray")
-            ax.axis("off")
-            ax.set(
-                title=f"{pretty_hist_filename(checkerboard['hist_name'] or '')} ({pretty_mri_key(checkerboard['mri_key'])})"
-            )
-
-        for ax in axes[len(run["checkerboard"]) :]:
-            ax.set_visible(False)
-
-        ch_fig.tight_layout()
-
-        if out_path:
-            ch_fig.savefig(ensure_path_exists("plots" / out_path / run["name"] / "checkerboard.png"), dpi=300)
-        del ch_fig
-
-        # MRI
-        mri_dict = {}
-        for mri in run["mri_overview"]:
-            mri_dict[mri["mri_key"]] = (mri["img"]["before"], mri["img"]["after"])  # type: ignore
-
-        mri_fig = plot_mri_before_after(
-            mri_dict,
-            # Technically correct but feels bad
-            animal=animal_id_from_filename(run["mri_overview"][0].get("animal_name", "")),
-        )
-
-        if out_path:
-            mri_fig.savefig(ensure_path_exists("plots" / out_path / run["name"] / "mri_overview.png"), dpi=300)
-        del mri_fig
-
-        # TRANSFORMED ORIGINALS
-        t_fig = Figure(figsize=(8, 8))
-        canvas = FigureCanvasAgg(t_fig)
-        t_fig.suptitle(f"Transformed histology ({run['name']})", fontsize=16, fontweight="bold")
-
-        axes = t_fig.subplots(nrows=2, ncols=2)
-        if isinstance(axes, np.ndarray):
-            axes = axes.flat
-        for ax, transformed in zip(axes, run["transformed_original"]):
-            ax.imshow(cast(ANTsImage, transformed["img"]).numpy().T, cmap="gray")
-            ax.axis("off")
-            ax.set(
-                title=f"{pretty_hist_filename(transformed['hist_name'] or '')} ({pretty_mri_key(transformed['mri_key'])})"
-            )
-
-        for ax in axes[len(run["transformed_original"]) :]:
-            ax.set_visible(False)
-
-        t_fig.tight_layout()
-
-        if out_path:
-            t_fig.savefig(ensure_path_exists("plots" / out_path / run["name"] / "transformed.png"), dpi=300)
-        del t_fig
-
-        # MAPS
-        map_fig = Figure(figsize=(8, 7))
-        map_fig.suptitle(f"Cell count maps ({run['name']})", fontsize=16, fontweight="bold")
-
-        axes = map_fig.subplots(nrows=2, ncols=2)
-        if isinstance(axes, np.ndarray):
-            axes = axes.flat
-
-        for ax, map_reg in zip(axes, run["map_overview"]):
-
-            fig = cast(Figure, map_reg["img"])
-
-            canvas = FigureCanvasAgg(fig)
-            canvas.draw()
-            rgba_buffer = canvas.buffer_rgba()
-
-            img_array = np.asarray(rgba_buffer)
-            ax.imshow(img_array)
-            ax.axis("off")
-
-        for ax in axes[len(run["map_overview"]) :]:
-            ax.set_visible(False)
-
-        map_fig.tight_layout(h_pad=0.4)
-
-        if out_path:
-            map_fig.savefig(ensure_path_exists("plots" / out_path / run["name"] / "maps.png"), dpi=300)
-        del map_fig
-
-    gc.collect()
-
-
-def collate_checkerboard_plots(ch_figs: list[RegPlot], name: str, out_path: Path | None = None):
+def collate_checkerboard_plots(ch_figs: "list[RegPlot]", name: str, out_path: Path | None = None):
     ch_fig = Figure(figsize=(6, 9))
     # canvas = FigureCanvasAgg(ch_fig)
     ch_fig.suptitle(f"Checkerboards ({name})", fontsize=16, fontweight="bold")
@@ -249,11 +134,11 @@ def collate_checkerboard_plots(ch_figs: list[RegPlot], name: str, out_path: Path
     ch_fig.tight_layout(h_pad=0.5, w_pad=0.04)
 
     if out_path:
-        ch_fig.savefig(ensure_path_exists("plots" / out_path / name / "checkerboard.png"), dpi=300)
+        ch_fig.savefig(ensure_path_exists(out_path / "plots" / "checkerboard.png"), dpi=300)
     return ch_fig
 
 
-def collate_mri_plots(mri_figs: list[RegPlot], name: str, out_path: Path | None = None):
+def collate_mri_plots(mri_figs: "list[RegPlot]", name: str, out_path: Path | None = None):
     mri_dict = {}
     for mri in mri_figs:
         mri_dict[mri["mri_key"]] = (mri["img"]["before"], mri["img"]["after"])  # type: ignore
@@ -265,11 +150,11 @@ def collate_mri_plots(mri_figs: list[RegPlot], name: str, out_path: Path | None 
     )
 
     if out_path:
-        mri_fig.savefig(ensure_path_exists("plots" / out_path / name / "mri_overview.png"), dpi=300)
+        mri_fig.savefig(ensure_path_exists(out_path / "plots" / "mri_overview.png"), dpi=300)
     return mri_fig
 
 
-def sort_by_tile_size(data: list[RegPlot]) -> list[RegPlot]:
+def sort_by_tile_size(data: "list[RegPlot]") -> "list[RegPlot]":
     def sort_key(d):
         size = re.match("cell_count_(.+)", d["map_name"])
         if size:
@@ -285,13 +170,13 @@ def sort_by_tile_size(data: list[RegPlot]) -> list[RegPlot]:
     return sorted(data, key=sort_key)
 
 
-def collate_map_plots(map_figs: list[RegPlot], name: str, out_path: Path | None = None):
+def collate_map_plots(map_figs: "list[RegPlot]", name: str, out_path: Path | None = None):
     map_fig = Figure(figsize=(8, 5))
     map_fig.suptitle(f"Cell count maps ({name})", fontsize=16, fontweight="bold")
 
     sorted_figs = sort_by_tile_size(map_figs)
 
-    ndims = n_subplots(len(sorted_figs))
+    ndims = create_subplot_grid(len(sorted_figs))
     axes = map_fig.subplots(nrows=ndims.nrows, ncols=ndims.ncols)
     if isinstance(axes, np.ndarray):
         axes = axes.flat
@@ -323,11 +208,11 @@ def collate_map_plots(map_figs: list[RegPlot], name: str, out_path: Path | None 
     map_fig.tight_layout(h_pad=0.2)
 
     if out_path:
-        map_fig.savefig(ensure_path_exists("plots" / out_path / name / "maps.png"), dpi=300)
+        map_fig.savefig(ensure_path_exists(out_path / "plots" / "maps.png"), dpi=300)
     return map_fig
 
 
-def collate_transformed_originals(figs: list[RegPlot], name: str, out_path: Path | None = None):
+def collate_transformed_originals(figs: "list[RegPlot]", name: str, out_path: Path | None = None):
     t_fig = Figure(figsize=(6, 9))
     # canvas = FigureCanvasAgg(t_fig)
     t_fig.suptitle(f"Transformed histology ({name})", fontsize=16, fontweight="bold")
@@ -348,44 +233,9 @@ def collate_transformed_originals(figs: list[RegPlot], name: str, out_path: Path
     t_fig.tight_layout(w_pad=0.04)
 
     if out_path:
-        t_fig.savefig(ensure_path_exists("plots" / out_path / name / "transformed.png"), dpi=300)
+        t_fig.savefig(ensure_path_exists(out_path / "plots" / "transformed.png"), dpi=300)
     return t_fig
 
 
-def plot_integral_table():
-    csvs = [path for path in (Path("out") / "integrals").iterdir() if path.suffix == ".csv"]
-    dfs = [pd.read_csv(csv) for csv in csvs]
-    df = pd.concat(dfs)
-
-    cell_count_100 = df[df["map_name"] == "cell_count_100"].copy()
-    cell_count_100["mi"] = np.abs(cell_count_100["mi"])
-    integral_groups = cell_count_100.groupby(by="max_slice")
-    integral_summary = integral_groups.aggregate({"mi": ["mean", "std", "median"]})
-
-    x_positions = ["1 Slice", "2 Slices", "3 Slices"]
-
-    fig = Figure((10, 10))
-    ax = fig.subplots(nrows=1, ncols=1, squeeze=True)
-
-    ax.errorbar(
-        x=x_positions,
-        y=integral_summary[("mi", "mean")],
-        yerr=integral_summary[("mi", "std")],
-        fmt="o-",
-        capsize=4,
-        color="blue",
-        ecolor="black",
-    )
-
-    ax.set_xticks(range(len(x_positions)))
-    ax.set_xticklabels(x_positions)
-
-    ax.set_xlabel("Number of cell count maps")
-    ax.set_ylabel("Mean MI")
-
-    fig.savefig("integralsummary.png", dpi=300)
-    integral_summary.to_csv(ensure_path_exists(Path("csvs") / "integralsummary.csv"))
-
-
 if __name__ == "__main__":
-    plot_integral_table()
+    pass

@@ -8,15 +8,25 @@ import time
 from functools import wraps
 from itertools import starmap
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Literal
 
 import pandas as pd
 from tqdm import tqdm
 
-from src.mycoloc.__types import *
+from src.mycoloc.__types import GridDims
 
 
-def n_subplots(n: int, orientation: Literal["wide", "long"] = "wide") -> GridDims:
+def create_subplot_grid(n: int, orientation: Literal["wide", "long"] = "wide") -> GridDims:
+    """
+    Matplotlib utility funciton to create a grid of subplots for a given number of subplots as close to a square as possible
+
+    Args:
+        n (int): Number of subplots
+        orientation ("wide" | "long", optional): If not perfectly square, should the output be long or wide (e.g 2x3 or 3x2). Defaults to "wide".
+
+    Returns:
+        GridDims: NamedTuple with `nrows` and `ncols` properties
+    """
     if orientation == "long":
         nrows = math.ceil(math.sqrt(n))
         ncols = math.ceil(n / nrows)
@@ -67,6 +77,12 @@ def pretty_hist_filename(filename: Path | str) -> str:
 
 
 def func_timer(func: Callable):
+    """
+    Decorator to print time taken to run a function. Supports both sync and async functions.
+
+    Args:
+        func (Callable): Function to time
+    """
     if asyncio.iscoroutinefunction(func):
 
         @wraps(func)
@@ -108,6 +124,16 @@ def ensure_path_exists(str_or_path: str | Path) -> str:
 
 
 def multi_index_to_str(midx: pd.Index, sep="_"):
+    """
+    Convert the levels of a Pandas Multi-index to strings
+
+    Args:
+        midx (pd.Index): The multi-index
+        sep (str, optional): The character to join the levels of the multi-index. Defaults to "_".
+
+    Returns:
+        pd.Index: The index, where each level is now a string comprised of the levels of the Multi-index
+    """
     fstr = sep.join(["{}"] * midx.nlevels)
     return pd.Index(starmap(fstr.format, midx))
 
@@ -126,4 +152,4 @@ def mypprint(x):
     ANTsPrettyPrinter(width=200, indent=0).pprint(x)
 
 
-progress = tqdm(total=0)
+progress = tqdm(total=0, delay=5)

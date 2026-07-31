@@ -5,9 +5,10 @@ import os
 import subprocess
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import ants
+import numpy as np
 import skimage.exposure as se
 import tiffslide
 from ants import ANTsImage
@@ -15,8 +16,12 @@ from PIL import Image
 from pydicom import datadict
 from skimage.color import rgb2hed
 
-from src.mycoloc.__types import *
 from src.mycoloc.utils import animal_id_from_filename, slice_number_from_filename
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from src.mycoloc.__types import AntsHeader, GreyscaleModes, ImageInfo
 
 
 class LazyAntsImage:

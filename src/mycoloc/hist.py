@@ -1,22 +1,33 @@
 import gc
 from collections import defaultdict
 from pathlib import Path
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import ants
+import numpy as np
 import SimpleITK as sitk
 from ants import ANTsImage
 
-from src.mycoloc.__types import *
-from src.mycoloc.img_utils import correct_map_interp, scale_and_align_to_ref, threshold_img
+from src.mycoloc.img_utils import scale_and_align_to_ref, threshold_img
 from src.mycoloc.LazyAntsImage import LazyAntsImage
 from src.mycoloc.utils import ensure_path_exists, is_file
+
+if TYPE_CHECKING:
+    from src.mycoloc.__types import (
+        AllocatedHists,
+        DicomParams,
+        HistParams,
+        HistSlicesDict,
+        RegistrationDict,
+        T,
+        ThresholdDict,
+    )
 
 
 @overload
 def prepare_hist(
     hist: ANTsImage,
-    slice_details: HistSlicesDict,
+    slice_details: "HistSlicesDict",
     mri: ANTsImage,
     mri_mask: ANTsImage | None = None,
     *,
@@ -25,14 +36,14 @@ def prepare_hist(
     resample: bool = True,
     interp: str = "nearestNeighbor",
     out_path: Path | None = None,
-) -> ThresholdDict:
+) -> "ThresholdDict":
     pass
 
 
 @overload
 def prepare_hist(
     hist: ANTsImage,
-    slice_details: HistSlicesDict,
+    slice_details: "HistSlicesDict",
     mri: ANTsImage,
     mri_mask: ANTsImage | None = None,
     *,
@@ -47,7 +58,7 @@ def prepare_hist(
 
 def prepare_hist(
     hist: ANTsImage,
-    slice_details: HistSlicesDict,
+    slice_details: "HistSlicesDict",
     mri: ANTsImage,
     mri_mask: ANTsImage | None = None,
     *,
@@ -56,7 +67,7 @@ def prepare_hist(
     resample: bool = True,
     interp: str = "linear",
     out_path: Path | None = None,
-) -> ANTsImage | ThresholdDict:
+) -> "ANTsImage | ThresholdDict":
     if "crop" in slice_details:
         crop = slice_details["crop"]
         # print(hist.shape)
@@ -100,14 +111,14 @@ def prepare_hist(
 
 
 def prepare_hist_thresholding(
-    threshold_dict: ThresholdDict,
+    threshold_dict: "ThresholdDict",
     mri: ANTsImage,
     mri_mask: ANTsImage | None,
     center: bool = False,
     resample: bool = True,
     interp: str = "nearestNeighbor",
     out_path: Path | None = None,
-) -> ThresholdDict:
+) -> "ThresholdDict":
 
     scaled_img = scale_and_align_to_ref(threshold_dict["img"], mri, interp)
     scaled_mask = scale_and_align_to_ref(threshold_dict["mask"], mri, interp)
@@ -130,7 +141,7 @@ def prepare_hist_thresholding(
         final_img = scaled_img
         final_mask = scaled_mask  # type: ignore
 
-    out: ThresholdDict = {
+    out: "ThresholdDict" = {
         "mask": final_mask,
         "img": final_img,
         "region": threshold_dict["region"],
@@ -139,7 +150,7 @@ def prepare_hist_thresholding(
     return out
 
 
-def allocate_hists(hists: list[HistSlicesDict], dicom_params: DicomParams) -> AllocatedHists[HistSlicesDict]:
+def allocate_hists(hists: list["HistSlicesDict"], dicom_params: "DicomParams") -> "AllocatedHists[HistSlicesDict]":
     """Assign each hist slide an MRI slide to be coregistered with (assuming 5 hist slides and 2 MRI slides)"""
     from src.mycoloc.utils import progress
 
@@ -169,21 +180,27 @@ def allocate_hists(hists: list[HistSlicesDict], dicom_params: DicomParams) -> Al
 
 @overload
 def register_hist_within(
-    hists: list[HistSlicesDict], hist_params: HistParams, dicom_params: DicomParams, return_reg_dict: Literal[True]
-) -> AllocatedHists[RegistrationDict]:
+    hists: "list[HistSlicesDict]",
+    hist_params: "HistParams",
+    dicom_params: "DicomParams",
+    return_reg_dict: Literal[True],
+) -> "AllocatedHists[RegistrationDict]":
     pass
 
 
 @overload
 def register_hist_within(
-    hists: list[HistSlicesDict], hist_params: HistParams, dicom_params: DicomParams, return_reg_dict: Literal[False]
-) -> AllocatedHists[HistSlicesDict]:
+    hists: "list[HistSlicesDict]",
+    hist_params: "HistParams",
+    dicom_params: "DicomParams",
+    return_reg_dict: Literal[False],
+) -> "AllocatedHists[HistSlicesDict]":
     pass
 
 
 def register_hist_within(
-    hists: list[HistSlicesDict], hist_params: HistParams, dicom_params: DicomParams, return_reg_dict: bool = False
-) -> AllocatedHists[T]:
+    hists: "list[HistSlicesDict]", hist_params: "HistParams", dicom_params: "DicomParams", return_reg_dict: bool = False
+) -> "AllocatedHists[T]":
     """
     Register hist slices against others. Returns a dict with hist slides allocated to MRI slides, optionally including the registration info. See `allocate_hists`
     """
@@ -206,7 +223,7 @@ def register_hist_within(
 
             moving = hist_dict["img"].greyscale_img(hist_params["greyscale_type"])
 
-            reg: RegistrationDict = ants.registration(fixed=fixed_img, moving=moving, type_of_transform="SyN")
+            reg: RegistrationDict = ants.registration(fixed=fixed_img, moving=moving, type_of_transform="SyN")  # type: ignore
             progress.write(f"Registered {hist_dict['img'].path} against slice {fixed_img_idx}")
 
             hist_dict["img"].img = reg["warpedmovout"]
@@ -218,7 +235,7 @@ def register_hist_within(
 
 def transform_original_hist(
     hist_zero: ANTsImage,
-    slice_details: HistSlicesDict,
+    slice_details: "HistSlicesDict",
     mri_zero: ANTsImage,
     mri_mask: ANTsImage,
     transform: list[str],
@@ -243,7 +260,7 @@ def transform_original_hist(
 
 def create_hist_volume(
     hist_dict: dict[str, ANTsImage],
-    dicom_params: DicomParams,
+    dicom_params: "DicomParams",
     out_path: Path,
     interp: str | None = "nearestNeighbor",
     is_map: bool = False,

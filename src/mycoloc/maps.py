@@ -8,8 +8,7 @@ from pathlib import Path
 import ants
 from ants import ANTsImage
 
-from src.mycoloc.__types import *
-from src.mycoloc.img_utils import correct_map_interp
+from src.mycoloc.__types import DicomParams, HistParams, HistSlicesDict, ProcessedMap
 from src.mycoloc.LazyAntsImage import LazyAntsImage
 from src.mycoloc.utils import ensure_path_exists, progress
 
@@ -82,24 +81,11 @@ def process_maps(
             progress.write("Necrosis-correcting cell density map")
             final_map = necrosis_correct_density(corrected_map, necrosis_transformed)  #
 
-            # (final_map * 255).astype("uint8").to_file(
-            #     ensure_path_exists(out_path / "maps" / f"{map_name}_map_corrected.nii.gz")
-            # )
+
         else:
             final_map = corrected_map
 
         if DEBUG:
-
-            # print(f"""
-            #     {mri_processed.shape=}
-            #     {mri_processed.spacing=}
-            #     {mri_processed.origin=}
-            #     {mri_processed.direction=}
-            #     {map_transformed.shape=}
-            #     {map_transformed.spacing=}
-            #     {map_transformed.origin=}
-            #     {map_transformed.direction=}
-            # """)
 
             (map_dict["map_img"].img).astype("uint8").to_file(
                 ensure_path_exists(out_path / "maps" / map_name / f"map_raw.png")
@@ -108,10 +94,10 @@ def process_maps(
                 ensure_path_exists(out_path / "maps" / map_name / f"map_processed.png")
             )
 
-            (map_masked * 255).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / map_name / f"masked.png"))
-
-            (map_transformed).astype("uint8").to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.png"))
-            (map_transformed).to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.tif"))
+            (map_transformed).astype("uint8").to_file(
+                ensure_path_exists(out_path / "maps" / map_name / f"map_registered.png")
+            )
+            (map_transformed).to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.svs"))
 
         if mri_key and dicom_params:
             # Create a volume with identical shape to the original MRI volume with the map inserted in the appropriate place
@@ -132,12 +118,15 @@ def process_maps(
                     out_path=out_path / "maps" / f"{map_name}unmasked.nii.gz",
                 )
 
+        # MI between un-registered images
+        control_mi: float = ants.image_mutual_information(mri_processed, map_processed)
         mi_score: float = ants.image_mutual_information(mri_processed, final_map)
         # print(mi_score)
 
         ret_dict[map_name] = {
             "img": LazyAntsImage(final_map),
             "mutual_info": mi_score,
+            "control_mi": control_mi,
             "mri_key": mri_key,
             "map_name": map_name,
             "combine_type": map_dict["combine_type"],
@@ -153,7 +142,7 @@ def process_maps(
             if "middle_slice_factor" in slice_details:
                 middle_slice_factor = slice_details["middle_slice_factor"][mri_key]
             else:
-                middle_slice_factor = 1 / len(slice_details["register_to"]) # Default to 0.5
+                middle_slice_factor = 1 / len(slice_details["register_to"])  # Default to 0.5
 
         if middle_slice_factor:
             progress.write(f"Setting middle slice factor {middle_slice_factor} for {mri_key}!")

@@ -1,18 +1,27 @@
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 import ants
 import matplotlib
+import numpy as np
 import SimpleITK as sitk
 import skimage.exposure as se
+from ants import ANTsImage
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 from scipy import ndimage
 from skimage import measure, morphology
-from skimage.filters import threshold_otsu
+from skimage.filters import threshold_local, threshold_otsu
 from skimage.morphology import ball, disk
 
-from src.mycoloc.__types import *
 from src.mycoloc.config import DEBUG
 from src.mycoloc.LazyAntsImage import LazyAntsImage
 from src.mycoloc.utils import ensure_path_exists
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from src.mycoloc.__types import RegistrationDict, ThresholdDict
 
 matplotlib.use("agg")
 
@@ -51,22 +60,11 @@ def scale_and_align_to_ref(img: ANTsImage, reference: ANTsImage, interp: str = "
     return img
 
 
-def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> ThresholdDict:
-    # print(np.unique(mri.numpy()))
+def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> "ThresholdDict":
     mri_bias_corrected = ants.abp_n4(mri, (0.01, 0.99, 256))
-
-    # tissue_mask = mri_bias_corrected.numpy() > 0
-
-    # p2, p98 = np.percentile(mri_bias_corrected.numpy()[tissue_mask], (2, 98))
-    # stretched_image = se.rescale_intensity(mri_bias_corrected.numpy(), out_range=(mri.min(), np.iinfo(np.uint8).max))  # type: ignore
-
-    # stretched_image[~tissue_mask] = 0
-
-    # mri_bias_corrected = ants.new_image_like(mri_bias_corrected, stretched_image)
 
     thresholded = threshold_img(mri_bias_corrected, destructive=True)
     if DEBUG:
-        # print(f"{thresholded['mask'].dtype=}")
         (thresholded["mask"] * 255).astype("uint8").to_file("mri_mask.png")  # type: ignore
 
     fig = Figure(layout="constrained")
@@ -93,7 +91,7 @@ def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> ThresholdDict:
     return thresholded
 
 
-def normalize_01(image: npt.NDArray):
+def normalize_01(image: "npt.NDArray"):
     """
     Normalizes a numpy array to the range [0.0, 1.0].
     """
@@ -110,7 +108,7 @@ def normalize_01(image: npt.NDArray):
     return normalized_img
 
 
-def threshold_img(img: LazyAntsImage | ANTsImage, *, destructive: bool) -> ThresholdDict:
+def threshold_img(img: LazyAntsImage | ANTsImage, *, destructive: bool) -> "ThresholdDict":
     """
     Threshold an image into its largest single object. For MRI, this means removing the skull and keeping only the brain
 
@@ -155,7 +153,7 @@ def threshold_img(img: LazyAntsImage | ANTsImage, *, destructive: bool) -> Thres
 
     # Only erode and dilate if MRI image
     if destructive:
-        binary = morphology.erosion(binary, footprint_fn(3))
+        binary = morphology.erosion(binary, footprint_fn(2))
 
     labeled = measure.label(binary)
 
@@ -182,7 +180,7 @@ def threshold_img(img: LazyAntsImage | ANTsImage, *, destructive: bool) -> Thres
     return {"img": final_img, "mask": mask_ants, "region": final_region}
 
 
-def compose_registration(reg_args: dict[str, Any], reg_types: list[str]) -> list[RegistrationDict]:
+def compose_registration(reg_args: dict[str, Any], reg_types: list[str]) -> list["RegistrationDict"]:
     reg_dicts: list[RegistrationDict] = []
     transformed_moving_mask = None
 
@@ -193,12 +191,12 @@ def compose_registration(reg_args: dict[str, Any], reg_types: list[str]) -> list
             mov = reg_args["moving"]
 
         mov_mask = transformed_moving_mask or reg_args.get("moving_mask", None)
-        reg: RegistrationDict = ants.registration(
+        reg: RegistrationDict = ants.registration(  # type: ignore
             **reg_args, moving=mov, moving_mask=mov_mask, type_of_transform=reg_type
         )
 
         if "moving_mask" in reg_args:
-            transformed_moving_mask = ants.apply_transforms(
+            transformed_moving_mask = ants.apply_transforms(  # type: ignore
                 transformlist=reg["fwdtransforms"],
                 fixed=mov_mask,
                 moving=mov_mask,
@@ -261,9 +259,7 @@ def create_checkerboard(
     tissue_mask = mri_np > 0
 
     p2, p98 = np.percentile(mri_np[tissue_mask], (2, 98))
-    stretched_image = se.rescale_intensity(
-        mri_np, out_range=(hist.min(), hist.max() * 1)  # type: ignore
-    )
+    stretched_image = se.rescale_intensity(mri_np, out_range=(hist.min(), hist.max() * 1))  # type: ignore
 
     stretched_image[~tissue_mask] = 0
 
