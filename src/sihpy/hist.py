@@ -8,12 +8,12 @@ import numpy as np
 import SimpleITK as sitk
 from ants import ANTsImage
 
-from src.mycoloc.img_utils import scale_and_align_to_ref, threshold_img
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import ensure_path_exists, is_file
+from src.sihpy.img_utils import scale_and_align_to_ref, threshold_img
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.utils import ensure_path_exists, is_file
 
 if TYPE_CHECKING:
-    from src.mycoloc.__types import (
+    from src.sihpy.__types import (
         AllocatedHists,
         DicomParams,
         HistParams,
@@ -152,7 +152,7 @@ def prepare_hist_thresholding(
 
 def allocate_hists(hists: list["HistSlicesDict"], dicom_params: "DicomParams") -> "AllocatedHists[HistSlicesDict]":
     """Assign each hist slide an MRI slide to be coregistered with (assuming 5 hist slides and 2 MRI slides)"""
-    from src.mycoloc.utils import progress
+    from src.sihpy.utils import progress
 
     ret_dict = defaultdict(list)
     valid_mri_keys = dicom_params["slices"].keys()
@@ -204,7 +204,7 @@ def register_hist_within(
     """
     Register hist slices against others. Returns a dict with hist slides allocated to MRI slides, optionally including the registration info. See `allocate_hists`
     """
-    from src.mycoloc.utils import progress
+    from src.sihpy.utils import progress
 
     registered = defaultdict(list)
     fixed_img_idx = hist_params.get("fixed_image", 2)

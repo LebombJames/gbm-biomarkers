@@ -13,7 +13,7 @@ from typing import Callable, Literal
 import pandas as pd
 from tqdm import tqdm
 
-from src.mycoloc.__types import GridDims
+from src.sihpy.__types import GridDims
 
 
 def create_subplot_grid(n: int, orientation: Literal["wide", "long"] = "wide") -> GridDims:

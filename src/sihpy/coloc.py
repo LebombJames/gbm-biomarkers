@@ -4,6 +4,7 @@ import asyncio
 import concurrent
 import concurrent.futures
 import gc
+from copy import deepcopy
 from functools import partial
 from pathlib import Path
 
@@ -12,20 +13,21 @@ import numpy as np
 from ants import ANTsImage
 from pandas import DataFrame
 
-from src.mycoloc.__types import *
-from src.mycoloc.config import DEBUG
-from src.mycoloc.hist import (
+from scripts.stats import combine_maps_integral
+from src.sihpy.__types import *
+from src.sihpy.config import DEBUG
+from src.sihpy.hist import (
     allocate_hists,
     create_hist_volume,
     prepare_hist,
     register_hist_within,
     transform_original_hist,
 )
-from src.mycoloc.img_utils import create_checkerboard, prepare_mri
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.maps import combine_maps, process_maps
-from src.mycoloc.plots import collate_checkerboard_plots, plot_roi_intensity
-from src.mycoloc.utils import ensure_path_exists, func_timer, pretty_hist_filename, pretty_mri_key
+from src.sihpy.img_utils import create_checkerboard, prepare_mri
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.maps import combine_maps, process_maps
+from src.sihpy.plots import collate_checkerboard_plots, plot_roi_intensity
+from src.sihpy.utils import ensure_path_exists, func_timer, pretty_hist_filename, pretty_mri_key
 
 
 def run_registration_in_thread(
@@ -96,7 +98,7 @@ def run_registration(
     Returns:
         RegPlots | None: _description_
     """
-    from src.mycoloc.utils import progress
+    from src.sihpy.utils import progress
 
     mri_slices = dicom_params["slices"]
     hist_slices = hist_params["slices"]
@@ -162,8 +164,8 @@ def run_registration(
             hist_mask = hist_processed["mask"]
 
             if DEBUG:
-                hist_img.to_file(ensure_path_exists(hist_out_path / f"final_hist.svs"))
-                (hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"final_mask.svs"))
+                hist_img.to_file(ensure_path_exists(hist_out_path / f"final_hist.ome.tif"))
+                (hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"final_mask.ome.tif"))
 
             affine_init = None
             if reg_params["use_initial_affine"]:
@@ -206,7 +208,7 @@ def run_registration(
                     continue
 
             if DEBUG:
-                registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"registered_hist.svs"))
+                registered["warpedmovout"].to_file(ensure_path_exists(hist_out_path / f"registered_hist.ome.tif"))
 
             progress.write(f"{run_name} | Transforming the original high-res histology")
             transformed_original_hist = transform_original_hist(
@@ -233,7 +235,9 @@ def run_registration(
             if slice_details["maps"]:
 
                 if DEBUG:
-                    (transformed_hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"transformed_mask.svs"))
+                    (transformed_hist_mask * 255).to_file(
+                        ensure_path_exists(hist_out_path / f"transformed_mask.ome.tif")
+                    )
 
                 maps = process_maps(
                     slice_details,
@@ -297,6 +301,7 @@ def run_registration(
 
             create_hist_volume({mri_key: registered["warpedmovout"]}, dicom_params, out_path=hist_out_path)
 
+            del slice_details["img"].img
             progress.update(1)
             progress.write("---")
             gc.collect()
@@ -305,7 +310,7 @@ def run_registration(
 
     combined = combine_maps(out_maps)
 
-    # combine_maps_integral(out_maps, dicom_params["slices"])
+    combine_maps_integral(out_maps, dicom_params["slices"])
 
     map_df = DataFrame(map_df_list, copy=False)
     try:
@@ -335,7 +340,7 @@ def run_registration(
         progress.write(f"{run_name} | Registration complete with {failures} failures!")
 
     gc.collect()
-    collate_checkerboard_plots(plots["checkerboard"], run_name, out_path=base_out_path)
+    # collate_checkerboard_plots(plots["checkerboard"], run_name, out_path=base_out_path)
     # collate_mri_plots(plots["mri_overview"], run_name, out_path=base_out_path)
     # collate_transformed_originals(plots["transformed_original"], run_name, out_path=base_out_path)
     # collate_map_plots(plots["map_overview"], run_name, out_path=base_out_path)
@@ -504,6 +509,7 @@ def build_hist_slices(
 # These contain paths to the images, as well as allow customisation of the registration workflow, in order to perform
 # the tests in Results
 if __name__ == "__main__":
+    dicom23p = build_dicom_params(Path("23R_SC2"), slices_idx=[8, 9])
     dicom23r = build_dicom_params(Path("23R_SC2"), slices_idx=[6, 7])
     dicom23s = build_dicom_params(Path("23S_SC2"), slices_idx=[6, 7])
     dicom23t = build_dicom_params(Path("23T_SC2"), slices_idx=[7, 8])
@@ -619,6 +625,7 @@ if __name__ == "__main__":
         } | replace_dict
 
     all_params: dict[str, AnimalParams] = {
+        "23P": {"mri": dicom23p, "hist": hist23p},
         "23R": {"mri": dicom23r, "hist": hist23r},
         "23S": {"mri": dicom23s, "hist": hist23s},
         "23T": {"mri": dicom23t, "hist": hist23t},
@@ -632,7 +639,8 @@ if __name__ == "__main__":
     async def main():
         tasks = []
         for animal, param in all_params.items():
-            
+
+            # Components
             for mode in ["h&e", "mean", {"red", "blue"}]:
                 param["hist"]["greyscale_type"] = mode
 
@@ -649,12 +657,13 @@ if __name__ == "__main__":
                     run_registration_in_thread(
                         dicom_params=param["mri"],
                         hist_params=param["hist"],
-                        reg_params=reg_params({"out_prefix": Path("components") / animal / mode}),
+                        reg_params=reg_params({"out_prefix": Path("components") / animal / pretty_string}),
                         run_name=f"{animal} {pretty_string}",
                         strict=False,
                     )
                 )
 
+            # Registration type
             for reg in [
                 "Rigid",
                 "Affine",
@@ -667,92 +676,29 @@ if __name__ == "__main__":
                     run_registration_in_thread(
                         dicom_params=param["mri"],
                         hist_params=param["hist"],
-                        reg_params=reg_params({"out_prefix": Path("reg_types") / animal / reg}),
+                        reg_params=reg_params({"out_prefix": Path("reg_types") / animal / reg, "type_of_transform": reg}),
                         run_name=f"{animal} {reg}",
+                        strict=False,
+                    )
+                )
+
+            # MRI allocation
+            for mri in ["mri_1", "mri_2"]:
+
+                hist_params = deepcopy(param["hist"])
+                for slices in hist_params["slices"]:
+                    slices["register_to"] = mri
+
+                tasks.append(
+                    run_registration_in_thread(
+                        dicom_params=param["mri"],
+                        hist_params=hist_params,
+                        reg_params=reg_params({"out_prefix": Path("allocation") / animal / mri}),
+                        run_name=f"{animal} {mri}",
                         strict=False,
                     )
                 )
 
         await run_many_registrations(tasks, 2)
 
-        tasks = [
-            # run_registration(
-            #     dicom_params=dicom23r,
-            #     hist_params=hist23r,
-            #     reg_params=reg_params({"out_prefix": Path("23R")}),
-            #     run_name="23R",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23s,
-            #     hist_params=hist23s,
-            #     reg_params=reg_params({"out_prefix": Path("23S")}),
-            #     run_name="23S",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23t,
-            #     hist_params=hist23t,
-            #     reg_params=reg_params({"out_prefix": Path("23T")}),
-            #     run_name="23T",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23u,
-            #     hist_params=hist23u,
-            #     reg_params=reg_params({"out_prefix": Path("23U")}),
-            #     run_name="23U",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23w,
-            #     hist_params=hist23w,
-            #     reg_params=reg_params({"out_prefix": Path("23W")}),
-            #     run_name="23W",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23x,
-            #     hist_params=hist23x,
-            #     reg_params=reg_params({"out_prefix": Path("23X")}),
-            #     run_name="23X",
-            # ),
-            # run_registration(
-            #     dicom_params=dicom23y,
-            #     hist_params=hist23y,
-            #     reg_params=reg_params({"out_prefix": Path("23Y")}),
-            #     run_name="23Y",
-            # ),
-        ]
-
-        # plot_integral_table()
-
-        # mypprint(f"{plots=}")
-
-        # plot_for_runs(plots, out_path=Path())
-
-        # tasks = [
-        #     run_registration_in_thread(
-        #         dicom_params=dicom23x,
-        #         hist_params=hist23x,
-        #         reg_params=reg_params({"out_prefix": Path("23X_Rigid"), "type_of_transform": "Rigid"}),
-        #         run_name="Rigid",
-        #     ),
-        # ]
-
-        # await run_many_registrations(tasks, max_tasks=3)
-
     asyncio.run(main())
-
-    # i = LazyAntsImage(Path("HnE") / "23r" / "240920_GCBA_23r_HnE20x_S1.svs", level=2)
-    # # m = prepare_mri(LazyAntsImage(Path("23R_SC2") / "MRIm09.dcm", dimension=2).img)
-    # a = i.greyscale_img("h&e")
-    # b = i.greyscale_img("h")
-    # c = i.greyscale_img("e")
-    # d = i.greyscale_img("mean")
-    # a.to_file("a.tif")
-    # b.to_file("b.tif")
-    # c.to_file("c.tif")
-    # # d.to_file("d.tif")
-
-    # import skimage.exposure as se
-
-    # # out = se.equalize_hist(b)
-    # out = a
-    # out.to_file("histogram.tif")
-    # d.astype("uint8").to_filename("d.png")

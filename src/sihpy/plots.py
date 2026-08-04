@@ -9,7 +9,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
-from src.mycoloc.utils import (
+from src.sihpy.utils import (
     animal_id_from_filename,
     create_subplot_grid,
     ensure_path_exists,
@@ -20,7 +20,7 @@ from src.mycoloc.utils import (
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from src.mycoloc.__types import ROI, RegPlot
+    from src.sihpy.__types import ROI, RegPlot
 
 matplotlib.use("agg")
 
@@ -54,7 +54,7 @@ def plot_roi_intensity(
     ax2 = fig.add_subplot(gs[2, 0])
     ax3 = fig.add_subplot(gs[2, 1])
 
-    mask = (normalised_map > 0) & (normalised_mri > 0)
+    mask = (normalised_map > 0) | (normalised_mri > 0)
     masked_hist: npt.NDArray = normalised_map[mask]
     masked_mri: npt.NDArray = normalised_mri[mask]
 

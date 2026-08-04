@@ -1,0 +1,4 @@
+Component,MI Mean,MI Median,SD,dice_mean,dice_median,dice_std,jaccard_mean,jaccard_median,jaccard_std
+H&E,0.327,0.328,0.059,0.932,0.952,0.085,0.882,0.909,0.114
+RB Mean,0.325,0.326,0.062,0.934,0.959,0.091,0.886,0.922,0.121
+RGB Mean,0.322,0.328,0.066,0.928,0.957,0.098,0.877,0.918,0.13

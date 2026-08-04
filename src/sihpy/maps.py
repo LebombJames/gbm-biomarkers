@@ -8,9 +8,9 @@ from pathlib import Path
 import ants
 from ants import ANTsImage
 
-from src.mycoloc.__types import DicomParams, HistParams, HistSlicesDict, ProcessedMap
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import ensure_path_exists, progress
+from src.sihpy.__types import DicomParams, HistParams, HistSlicesDict, ProcessedMap
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.utils import ensure_path_exists, progress
 
 
 def process_maps(
@@ -23,7 +23,7 @@ def process_maps(
     hist_params: HistParams,
     dicom_params: DicomParams | None = None,
 ) -> dict[str, ProcessedMap]:
-    from src.mycoloc.coloc import DEBUG, create_hist_volume, prepare_hist
+    from src.sihpy.coloc import DEBUG, create_hist_volume, prepare_hist
 
     if "maps" not in slice_details:
         raise AttributeError(f"Slice {slice_details['img'].path.name} has no associated maps.")
@@ -97,7 +97,7 @@ def process_maps(
             (map_transformed).astype("uint8").to_file(
                 ensure_path_exists(out_path / "maps" / map_name / f"map_registered.png")
             )
-            (map_transformed).to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.svs"))
+            (map_transformed).to_file(ensure_path_exists(out_path / "maps" / map_name / f"map.ome.tif"))
 
         if mri_key and dicom_params:
             # Create a volume with identical shape to the original MRI volume with the map inserted in the appropriate place
@@ -167,7 +167,7 @@ combine_fns = {"add": sum_imgs, "mean": mean_imgs}
 
 
 def combine_maps(maps: list[ProcessedMap]):
-    from src.mycoloc.coloc import DEBUG
+    from src.sihpy.coloc import DEBUG
 
     # grouped_imgs[map_name][mri_key] = [img1, img2, ...]
     grouped_imgs: defaultdict[str, defaultdict[str, list[LazyAntsImage]]] = defaultdict(lambda: defaultdict(list))

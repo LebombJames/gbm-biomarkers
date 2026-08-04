@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ants import ANTsImage
     from matplotlib.figure import Figure
     from skimage.measure._regionprops import RegionProperties
-    from src.mycoloc.LazyAntsImage import LazyAntsImage
+    from src.sihpy.LazyAntsImage import LazyAntsImage
 
 
 class RegistrationDict(TypedDict):

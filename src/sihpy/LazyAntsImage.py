@@ -16,12 +16,12 @@ from PIL import Image
 from pydicom import datadict
 from skimage.color import rgb2hed
 
-from src.mycoloc.utils import animal_id_from_filename, slice_number_from_filename
+from src.sihpy.utils import animal_id_from_filename, slice_number_from_filename
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from src.mycoloc.__types import AntsHeader, GreyscaleModes, ImageInfo
+    from src.sihpy.__types import AntsHeader, GreyscaleModes, ImageInfo
 
 
 class LazyAntsImage:
@@ -67,7 +67,7 @@ class LazyAntsImage:
     @cached_property
     def img(self) -> ANTsImage:
         """Return the cached Ants image, or load it from the path if not loaded yet."""
-        from src.mycoloc.utils import progress
+        from src.sihpy.utils import progress
 
         if self.path is None:
             # Mainly here for type checking, if img was provided in the params but path wasn't, img is returned immediately before
@@ -235,7 +235,7 @@ class LazyAntsImage:
         Run a qupath script that takes this image as an argument (`args[0]` in the groovy script),
         and creates an output image, which we read and return
         """
-        from src.mycoloc.utils import ensure_path_exists
+        from src.sihpy.utils import ensure_path_exists
 
         if self.path is None:
             raise ValueError("Scripts not available for in memory images.")

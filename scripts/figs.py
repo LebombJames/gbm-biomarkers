@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import animal_id_from_filename, create_subplot_grid
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.utils import animal_id_from_filename, create_subplot_grid, ensure_path_exists
 
 
 # Clean the 'map_name' column globally before doing any stats or aggregations
@@ -75,6 +75,27 @@ def create_map_violins():
         label="Median",
     )
 
+    boxprops = dict(facecolor="none", color="black", linewidth=1.5)
+    medianprops = dict(color="red", linewidth=2)
+    whiskerprops = dict(color="black", linewidth=1.5)
+    capprops = dict(color="black", linewidth=1.5)
+
+    grouped = df.groupby("map_name")
+    data = [abs(group["mi"].values) for name, group in grouped]
+
+    ax.boxplot(
+        violin_data,
+        positions=x_positions,
+        widths=0.15,
+        patch_artist=True,
+        showfliers=False,
+        boxprops=boxprops,
+        medianprops=medianprops,
+        whiskerprops=whiskerprops,
+        capprops=capprops,
+        zorder=2,
+    )
+
     # 3. Axis formatting
     ax.set_xticks(x_positions)
     ax.set_xticklabels(map_names, rotation=45, ha="right", fontsize=17)
@@ -90,12 +111,12 @@ def create_map_violins():
         spine.set_linewidth(1)
 
     ax.legend(fontsize=15)
-    fig.savefig("figs/fig_13_tile_size_violins.png", dpi=300)
+    fig.savefig("figs/fig_11_tile_size_violins.png", dpi=300)
 
 
 def create_component_violins():
     """
-    Create Figure 11: Violins showing MI, Dice, and Jaccard based on component selection
+    Create Figure 9: Violins showing MI, Dice, and Jaccard based on component selection
     """
     components = pd.read_csv("csvs/components.csv")
 
@@ -139,6 +160,27 @@ def create_component_violins():
             label="Median",
         )
 
+        boxprops = dict(facecolor="none", color="black", linewidth=1.5)
+        medianprops = dict(color="red", linewidth=2)
+        whiskerprops = dict(color="black", linewidth=1.5)
+        capprops = dict(color="black", linewidth=1.5)
+
+        grouped = components.groupby("component")
+        data = [abs(group[metric].values) for name, group in grouped]
+
+        ax.boxplot(
+            data,
+            positions=x_positions,
+            widths=0.15,
+            patch_artist=True,
+            showfliers=False,
+            boxprops=boxprops,
+            medianprops=medianprops,
+            whiskerprops=whiskerprops,
+            capprops=capprops,
+            zorder=2,
+        )
+
         ax.set_xticks(x_positions)
         ax.set_xticklabels(component_names, rotation=45, ha="right", fontsize=17)
         ax.tick_params(axis="y", labelsize=14)
@@ -146,18 +188,25 @@ def create_component_violins():
         ax.set_xlabel("Components", fontsize=18)
         ax.set_ylabel(metric.upper() if metric == "mi" else metric.capitalize(), fontsize=18)
 
+        # if metric == "mi":
+        #     ax.set_ylim([0.2, 0.42])  # type: ignore
+        # elif metric == "dice":
+        #     ax.set_ylim([0.8, 1])  # type: ignore
+        # else:
+        #     ax.set_ylim([0.8, 0.975])  # type: ignore
+
         for spine in ax.spines.values():
             spine.set_visible(True)
             spine.set_color("black")
             spine.set_linewidth(1)
 
         fig.legend(fontsize=13, loc="outside right")
-        fig.savefig(f"figs/fig_11_components_violin_{metric}.png", dpi=300)
+        fig.savefig(f"figs/fig_9_components_violin_{metric}.png", dpi=300)
 
 
 def create_reg_type_violins():
     """
-    Create Figure 8: Violin plots showing MI, Dice, Jaccard based on registration type
+    Create Figure 6: Violin plots showing MI, Dice, Jaccard based on registration type
     """
     # Reg Types
     reg_types = pd.read_csv("csvs/reg_types.csv")
@@ -202,8 +251,29 @@ def create_reg_type_violins():
             color="red",
             linewidth=2,
             markersize=8,
-            zorder=2,
+            zorder=3,
             label="Median",
+        )
+
+        boxprops = dict(facecolor="none", color="black", linewidth=1.5)
+        medianprops = dict(color="red", linewidth=2)
+        whiskerprops = dict(color="black", linewidth=1.5)
+        capprops = dict(color="black", linewidth=1.5)
+
+        grouped = reg_types.groupby("reg_type")
+        data = [group[metric].values for name, group in grouped]
+
+        ax.boxplot(
+            data,
+            positions=x_positions,
+            widths=0.15,
+            patch_artist=True,
+            showfliers=False,
+            boxprops=boxprops,
+            medianprops=medianprops,
+            whiskerprops=whiskerprops,
+            capprops=capprops,
+            zorder=2,
         )
 
         ax.set_xticks(x_positions)
@@ -219,7 +289,7 @@ def create_reg_type_violins():
             spine.set_linewidth(1)
 
         ax.legend(fontsize=15)
-        fig.savefig(f"figs/fig_8_reg_Types_{metric}.png", dpi=300)
+        fig.savefig(f"figs/fig_6_reg_Types_{metric}.png", dpi=300)
 
 
 def plot_sih_stacked_hist():
@@ -252,7 +322,7 @@ def plot_sih_stacked_hist():
             flat_arr = np.ravel(arr)
 
             if animal != "23P":
-                is_valid = np.isfinite(flat_arr) & (flat_arr > 100)
+                is_valid = np.isfinite(flat_arr) & (flat_arr > 5)
             else:
                 is_valid = np.isfinite(flat_arr) & (flat_arr > 5)
 
@@ -274,9 +344,12 @@ def plot_sih_stacked_hist():
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right center", fontsize=17)
 
-    fig.savefig("figs/fig_5_maps_histogram.png", dpi=300)
+    fig.savefig(ensure_path_exists("figs/fig_5_maps_histogram.png"), dpi=300)
 
 
 if __name__ == "__main__":
     plt.style.use("seaborn-v0_8-whitegrid")
+    create_component_violins()
     create_map_violins()
+    # plot_sih_stacked_hist()
+    create_reg_type_violins()

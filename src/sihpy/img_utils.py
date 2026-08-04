@@ -14,14 +14,14 @@ from skimage import measure, morphology
 from skimage.filters import threshold_local, threshold_otsu
 from skimage.morphology import ball, disk
 
-from src.mycoloc.config import DEBUG
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import ensure_path_exists
+from src.sihpy.config import DEBUG
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.utils import ensure_path_exists
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from src.mycoloc.__types import RegistrationDict, ThresholdDict
+    from src.sihpy.__types import RegistrationDict, ThresholdDict
 
 matplotlib.use("agg")
 

@@ -12,11 +12,11 @@ from statsmodels.formula.api import ols
 from statsmodels.stats.multitest import multipletests
 from statsmodels.stats.weightstats import ttost_ind
 
-from figs import clean_name
-from src.mycoloc.__types import MRISliceDict, ProcessedMap
-from src.mycoloc.img_utils import prepare_mri
-from src.mycoloc.LazyAntsImage import LazyAntsImage
-from src.mycoloc.utils import animal_id_from_filename, ensure_path_exists, multi_index_to_str, pretty_hist_filename
+from scripts.figs import clean_name
+from src.sihpy.__types import MRISliceDict, ProcessedMap
+from src.sihpy.img_utils import prepare_mri
+from src.sihpy.LazyAntsImage import LazyAntsImage
+from src.sihpy.utils import animal_id_from_filename, ensure_path_exists, multi_index_to_str, pretty_hist_filename
 
 
 def tile_size_anova():
@@ -86,8 +86,8 @@ def combine_maps_integral(maps: list[ProcessedMap], mri_params: dict[str, MRISli
     """
     As `combine_maps`, but repeatedly calculates MI for SIH maps using 1 map, 2 maps, then 3 maps.
     """
-    from src.mycoloc.coloc import DEBUG
-    from src.mycoloc.maps import combine_fns
+    from src.sihpy.coloc import DEBUG
+    from src.sihpy.maps import combine_fns
 
     df_rows = []
 
@@ -153,7 +153,10 @@ def combine_maps_integral(maps: list[ProcessedMap], mri_params: dict[str, MRISli
 
     out_df = pd.DataFrame(df_rows)
     out_df.to_csv(
-        f"out/integrals/{animal_id_from_filename(mri_params['mri_1']['img'].flags.get('path',''))}.csv", index=False
+        ensure_path_exists(
+            f"csvs/integrals/{animal_id_from_filename(mri_params['mri_1']['img'].flags.get('path',''))}.csv"
+        ),
+        index=False,
     )
 
     return dict(combined_out)

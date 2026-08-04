@@ -1,5 +1,5 @@
 [project]
-name = "mycoloc"
+name = "sihpy"
 version = "0.0.1"
 description = "A general-purpose package for performing histology to MRI coregistration"
 authors = [{ name = "Sam Marine", email = "sam.marine418@gmail.com" }]
