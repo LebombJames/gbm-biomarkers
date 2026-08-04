@@ -39,11 +39,11 @@ jobs:
   
       - name: Generate pdoc3 documentation
         run: |
-          poetry run pdoc3 --html --output-dir docs src/mycoloc
+          poetry run pdoc3 --html --output-dir docs src/sihpy
           
           # Move files to root so GitHub Pages serves them at the base URL
           mv docs/sihpy/* docs/
-          rm -r docs/mycoloc
+          rm -r docs/sihpy
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
