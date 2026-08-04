@@ -1,6 +1,7 @@
 name: Generate and Deploy Docs
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - main
