@@ -31,6 +31,11 @@ jobs:
       - name: Build wheel and sdist
         run: poetry build
 
+      - name: Create latest
+        run: |
+          WHEEL_FILE=$(find dist -name "*.whl" | head -n 1)
+          cp $WHEEL_FILE dist/sihpy-latest-py3-none-any.whl
+
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
