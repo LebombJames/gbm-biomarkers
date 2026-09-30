@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from skimage.measure._regionprops import RegionProperties
     from src.sihpy.LazyAntsImage import LazyAntsImage
 
+# Classes suffixed in DC are dataclasses, and are unused.
+# I may adjust other code to use them in the future as they are more convienient for users, but right now they're just proof of concept
+
 
 class RegistrationDict(TypedDict):
     warpedmovout: ANTsImage
@@ -74,6 +77,22 @@ class HistParams(TypedDict):
     """Array index of the fixed image if localising within hist slides. `2` (Slide 3) by default"""
     # use_masks: bool
     greyscale_type: GreyscaleModes
+    """
+    How to reduce an RGB image to a single channel.
+
+    `"mean"`: average RGB channels together.
+
+    Set including `"red"`, `"green"` or `"blue"`: Average specified channels together. All 3 is equivalent to `"mean"`. A single channel is equivalent to passing the string alone.
+
+    `"red"`, `"green"`, or `"blue"`: Use only the specified channel
+
+    `"h"`: Haematoxylin OD
+
+    `"e"`: Eosin OD
+
+    `"h&e"`: H&E OD
+
+    """
     split_multiple_register_to: bool
     """If true, histology slices with an array of MRI keys to register to will have their pixel intensity split amongst them. By default, this is 1/n, where n is the length of `register_to`, but `middle_slice_factor` can customise this."""
 
@@ -86,7 +105,8 @@ class HistParamsDC:
     fixed_image: int = 2
     """Array index of the fixed image if localising within hist slides. `2` (Slide 3) by default"""
     greyscale_type: GreyscaleModes = "mean"
-    """How to reduce an RGB image to a single channel.
+    """
+    How to reduce an RGB image to a single channel.
 
     `"mean"`: average RGB channels together.
 
@@ -147,7 +167,8 @@ class HistSlicesMapsDC:
 class HistSlicesDict(TypedDict):
     img: LazyAntsImage
     rotation: int
-    """A clockwise rotation in degrees to apply to the image.
+    """
+    A clockwise rotation in degrees to apply to the image.
 
     Note: Rotation is applied *after* cropping.
     """

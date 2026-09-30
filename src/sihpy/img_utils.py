@@ -60,12 +60,14 @@ def scale_and_align_to_ref(img: ANTsImage, reference: ANTsImage, interp: str = "
     return img
 
 
-def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> "ThresholdDict":
+def prepare_mri(mri: ANTsImage, mri_key: str, out_path: Path | None = None) -> "ThresholdDict":
     mri_bias_corrected = ants.abp_n4(mri, (0.01, 0.99, 256))
 
     thresholded = threshold_img(mri_bias_corrected, destructive=True)
-    if DEBUG:
-        (thresholded["mask"] * 255).astype("uint8").to_file("mri_mask.png")  # type: ignore
+
+    # Create before and after
+    if DEBUG and out_path:
+        thresholded["mask"].to_file(ensure_path_exists(out_path / f"{mri_key}_mask.ome.tif"))  # type: ignore
 
     fig = Figure(layout="constrained")
 
@@ -84,7 +86,7 @@ def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> "ThresholdDict"
     ax2.set_axis_off()
 
     if out_path:
-        fig.savefig(ensure_path_exists(out_path), dpi=300)
+        fig.savefig(ensure_path_exists(out_path / f"{mri_key}_overview.png"), dpi=300)
 
     thresholded["plot"] = fig
 
@@ -93,7 +95,7 @@ def prepare_mri(mri: ANTsImage, out_path: Path | None = None) -> "ThresholdDict"
 
 def normalize_01(image: "npt.NDArray"):
     """
-    Normalizes a numpy array to the range [0.0, 1.0].
+    Normalizes a numpy array to the range [0.0, 1.0]. UNUSED
     """
     img_float = image.astype(np.float64)
 
@@ -181,6 +183,9 @@ def threshold_img(img: LazyAntsImage | ANTsImage, *, destructive: bool) -> "Thre
 
 
 def compose_registration(reg_args: dict[str, Any], reg_types: list[str]) -> list["RegistrationDict"]:
+    """
+    UNUSED
+    """
     reg_dicts: list[RegistrationDict] = []
     transformed_moving_mask = None
 
@@ -210,7 +215,7 @@ def compose_registration(reg_args: dict[str, Any], reg_types: list[str]) -> list
 
 def correct_map_interp(original_map: ANTsImage, resampled_map: ANTsImage) -> ANTsImage:
     r"""
-    When we transform the map, we may be destroying or creating pixels, so we need to correct cell counts for that.
+    When we transform the map, we may be destroying or creating pixels, so we need to correct cell counts for that. UNUSED
     ```
     OLD:
     ---------
@@ -258,7 +263,7 @@ def create_checkerboard(
     mri_np = mri.numpy()
     tissue_mask = mri_np > 0
 
-    p2, p98 = np.percentile(mri_np[tissue_mask], (2, 98))
+    # p2, p98 = np.percentile(mri_np[tissue_mask], (2, 98))
     stretched_image = se.rescale_intensity(mri_np, out_range=(hist.min(), hist.max() * 1))  # type: ignore
 
     stretched_image[~tissue_mask] = 0

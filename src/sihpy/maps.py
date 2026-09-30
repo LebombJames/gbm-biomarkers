@@ -81,7 +81,6 @@ def process_maps(
             progress.write("Necrosis-correcting cell density map")
             final_map = necrosis_correct_density(corrected_map, necrosis_transformed)  #
 
-
         else:
             final_map = corrected_map
 
@@ -105,7 +104,6 @@ def process_maps(
                 {mri_key: final_map},
                 dicom_params,
                 interp="nearestNeighbor",
-                is_map=True,
                 out_path=out_path / "maps" / f"{map_name}.nii.gz",
             )
 
@@ -114,12 +112,11 @@ def process_maps(
                     {mri_key: map_transformed},
                     dicom_params,
                     interp="nearestNeighbor",
-                    is_map=True,
                     out_path=out_path / "maps" / f"{map_name}unmasked.nii.gz",
                 )
 
-        # MI between un-registered images
-        control_mi: float = ants.image_mutual_information(mri_processed, map_processed)
+        # MI between un-registered images, as a baseline
+        control_mi: float = ants.image_mutual_information(mri_processed, original_map)
         mi_score: float = ants.image_mutual_information(mri_processed, final_map)
         # print(mi_score)
 
@@ -135,8 +132,8 @@ def process_maps(
         # If this slice is registered to multiple MRI slices (because its in the middle), we apply a weighting to its intensity
         middle_slice_factor = None
         if (
-            hist_params["split_multiple_register_to"]
-            and isinstance(slice_details["register_to"], list)
+            hist_params["split_multiple_register_to"]  # Has the user actually enabled this?
+            and isinstance(slice_details["register_to"], list)  # Are we registering to multiple slices
             and len(slice_details["register_to"]) > 1
         ):
             if "middle_slice_factor" in slice_details:
@@ -167,7 +164,19 @@ combine_fns = {"add": sum_imgs, "mean": mean_imgs}
 
 
 def combine_maps(maps: list[ProcessedMap]):
-    from src.sihpy.coloc import DEBUG
+    """
+    Take a list of maps and combine them pixel-wise into a single map. Currently implemented are summing pixel values or averaging them.
+
+    Args:
+        maps (list[ProcessedMap]): The list of maps to combine. `ProcessedMap` is the output of `process_maps`
+
+    Raises:
+        ValueError: If the chosen combine method chosen to combine is different per map name. I.e all `"cell_count_100_um"` should all be combine type `"add"`. Should never happen when using `build_hist_slices`.
+        KeyError: If the combine type chosen isn't valid
+
+    Returns:
+        dict: A dictionary grouped by map name and MRI target image
+    """
 
     # grouped_imgs[map_name][mri_key] = [img1, img2, ...]
     grouped_imgs: defaultdict[str, defaultdict[str, list[LazyAntsImage]]] = defaultdict(lambda: defaultdict(list))
@@ -221,6 +230,8 @@ def necrosis_correct_density(tumour_density: ANTsImage, necrosis: ANTsImage) -> 
     """
     A simpler, more rudimentary necrosis correction. Simply add the necrosis% to the tumour%,
     and assume the total is a marker for overall tumour infiltration.
+
+    Unused right now.
 
     Args:
         tumour_density: The tumour density map

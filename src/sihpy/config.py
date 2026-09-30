@@ -7,6 +7,7 @@ import numpy as np
 DEBUG = True
 """If True, prints various diagnostic details to console, and creates intermediate images between steps."""
 
+# Set RNG seeds so every registration is deterministic
 seed = 123
 ants.config.set_ants_deterministic(True, seed)
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"

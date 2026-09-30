@@ -70,7 +70,6 @@ def prepare_hist(
 ) -> "ANTsImage | ThresholdDict":
     if "crop" in slice_details:
         crop = slice_details["crop"]
-        # print(hist.shape)
         if hist.shape != slice_details["img"].img.shape:
             # then this is a map, so we need to scale the crop, because the maps are smaller
 
@@ -82,7 +81,7 @@ def prepare_hist(
                 (crop[0][0] * x_ratio, crop[0][1] * x_ratio),
                 (crop[1][0] * y_ratio, crop[1][1] * y_ratio),
             )
-            # print(corrected_x, corrected_y)
+
             hist = ants.crop_indices(
                 hist, tuple(int(val) for val in corrected_x), tuple(int(val) for val in corrected_y)
             )
@@ -95,7 +94,7 @@ def prepare_hist(
 
     if threshold:
         thresholded = threshold_img(hist_after_rotation, destructive=False)
-        return prepare_hist_thresholding(thresholded, mri, mri_mask, center, resample, interp, out_path)
+        return prepare_hist_thresholding(thresholded, mri, resample, interp, out_path)
     else:
         scaled_img = scale_and_align_to_ref(hist_after_rotation, mri, interp)
 
@@ -113,8 +112,6 @@ def prepare_hist(
 def prepare_hist_thresholding(
     threshold_dict: "ThresholdDict",
     mri: ANTsImage,
-    mri_mask: ANTsImage | None,
-    center: bool = False,
     resample: bool = True,
     interp: str = "nearestNeighbor",
     out_path: Path | None = None,
@@ -202,7 +199,7 @@ def register_hist_within(
     hists: "list[HistSlicesDict]", hist_params: "HistParams", dicom_params: "DicomParams", return_reg_dict: bool = False
 ) -> "AllocatedHists[T]":
     """
-    Register hist slices against others. Returns a dict with hist slides allocated to MRI slides, optionally including the registration info. See `allocate_hists`
+    Register hist slices against others. Returns a dict with hist slides allocated to MRI slides, optionally including the registration info. See `allocate_hists`. Unused in the report.
     """
     from src.sihpy.utils import progress
 
@@ -262,12 +259,13 @@ def create_hist_volume(
     hist_dict: dict[str, ANTsImage],
     dicom_params: "DicomParams",
     out_path: Path,
-    interp: str | None = "nearestNeighbor",
-    is_map: bool = False,
+    interp: str | None = "nearestNeighbor"
 ) -> ANTsImage:
     """
     Create a 3D nifti in the same shape as the dicom volume from which the MRI slides are from, but insert the slide/map at the
     appropriate Z-index, and the rest of the Z-slices are black. This allows for comparison/overlay with the original MRI volume.
+
+    E.g 16 176*176 slices, all are black except 7 and 8, which are the calculated SIH maps
 
     Args:
         hist_dict: A dictionary, where the keys are the MRI keys, and the values are the histology images. The images will be inserted into the volume at the index of the MRI slides associated with the keys (see dicom_params) E.g `{"mri_1": hist1, "mri_2": hist2}`

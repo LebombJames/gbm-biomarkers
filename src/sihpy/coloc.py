@@ -4,7 +4,6 @@ import asyncio
 import concurrent
 import concurrent.futures
 import gc
-from copy import deepcopy
 from functools import partial
 from pathlib import Path
 
@@ -26,7 +25,7 @@ from src.sihpy.hist import (
 from src.sihpy.img_utils import create_checkerboard, prepare_mri
 from src.sihpy.LazyAntsImage import LazyAntsImage
 from src.sihpy.maps import combine_maps, process_maps
-from src.sihpy.plots import collate_checkerboard_plots, plot_roi_intensity
+from src.sihpy.plots import plot_roi_intensity
 from src.sihpy.utils import ensure_path_exists, func_timer, pretty_hist_filename, pretty_mri_key
 
 
@@ -126,26 +125,28 @@ def run_registration(
     # print({key: [v["img"].path.name for v in val] for key, val in hist_allocation.items()})
 
     for mri_key, mri_dict in mri_slices.items():
-        map_img = mri_dict["img"]
+        mri_img = mri_dict["img"]
 
         # Make any (X,Y,1) images (X,Y)
-        mri_zero: ANTsImage = ants.slice_image(map_img.img, axis=-1, idx=0)  # type: ignore
+        mri_zero: ANTsImage = ants.slice_image(mri_img.img, axis=-1, idx=0)  # type: ignore
         mri_zero.set_direction(np.eye(2))  # Sanity check
+
+        del mri_img.img
 
         # Process MRI
         progress.write(f"{run_name} | Processing {mri_key}")
-        mri_prepared_dict = prepare_mri(mri_zero, base_out_path / "MRI" / f"{mri_key}_overview.png")
+        mri_prepared_dict = prepare_mri(mri_zero, mri_key, base_out_path / "MRI")
         mri_processed = mri_prepared_dict["img"]
         mri_mask = mri_prepared_dict["mask"]
 
-        plots["mri_overview"].append(
-            {
-                "img": {"before": mri_zero, "after": mri_processed},
-                "mri_key": mri_key,
-                "hist_name": None,
-                "animal_name": str(map_img.flags.get("path", "").name),
-            }
-        )
+        # plots["mri_overview"].append(
+        #     {
+        #         "img": {"before": mri_zero, "after": mri_processed},
+        #         "mri_key": mri_key,
+        #         "hist_name": None,
+        #         "animal_name": str(mri_img.flags.get("path", "").name),
+        #     }
+        # )
 
         if DEBUG:
             mri_processed.to_file(ensure_path_exists(base_out_path / "MRI" / f"{mri_key}-processed.nii.gz"))
@@ -165,7 +166,7 @@ def run_registration(
 
             if DEBUG:
                 hist_img.to_file(ensure_path_exists(hist_out_path / f"final_hist.ome.tif"))
-                (hist_mask * 255).to_file(ensure_path_exists(hist_out_path / f"final_mask.ome.tif"))
+                hist_mask.to_file(ensure_path_exists(hist_out_path / f"final_mask.ome.tif"))
 
             affine_init = None
             if reg_params["use_initial_affine"]:
@@ -214,9 +215,9 @@ def run_registration(
             transformed_original_hist = transform_original_hist(
                 hist_zero, slice_details, mri_processed, mri_mask, registered["fwdtransforms"], out_path=hist_out_path
             )
-            plots["transformed_original"].append(
-                {"mri_key": mri_key, "hist_name": slice_details["img"].path.name, "img": transformed_original_hist}
-            )
+            # plots["transformed_original"].append(
+            #     {"mri_key": mri_key, "hist_name": slice_details["img"].path.name, "img": transformed_original_hist}
+            # )
 
             transformed_hist_mask: ANTsImage = ants.apply_transforms(
                 transformlist=registered["fwdtransforms"],
@@ -257,22 +258,23 @@ def run_registration(
                     out_maps.append(map_dict)
 
                     # if pretty_hist_filename(slice_details["img"].path.name) == "23R-1":
-                    plots["map_overview"].append(
-                        {
-                            "img": plot_roi_intensity(
-                                map_registered=map_dict["img"].img,
-                                mri=mri_processed,
-                                roi=((40, 100), (115, 140)),
-                                mi=map_dict["mutual_info"],
-                                title=pretty_hist_filename(slice_details["img"].path.name),
-                                out_path=hist_out_path / "maps" / map_name / "overview.png",
-                                mri_title=pretty_mri_key(mri_key),
-                            ),
-                            "mri_key": mri_key,
-                            "hist_name": slice_details["img"].path.name,
-                            "map_name": map_name,
-                        }
-                    )
+                    # plots["map_overview"].append(
+                    #     {
+                    # "img":
+                    plot_roi_intensity(
+                        map_registered=map_dict["img"].img,
+                        mri=mri_processed,
+                        roi=((40, 100), (115, 140)),
+                        mi=map_dict["mutual_info"],
+                        title=pretty_hist_filename(slice_details["img"].path.name),
+                        out_path=hist_out_path / "maps" / map_name / "overview.png",
+                        mri_title=pretty_mri_key(mri_key),
+                    ),
+                    #     "mri_key": mri_key,
+                    #     "hist_name": slice_details["img"].path.name,
+                    #     "map_name": map_name,
+                    # }
+                    #  )
 
                     map_df_list.append(
                         {
@@ -284,20 +286,21 @@ def run_registration(
                         }
                     )
 
-            plots["checkerboard"].append(
-                {
-                    "img": create_checkerboard(
-                        mri_processed,
-                        transformed_original_hist,
-                        squares=(16, 16),
-                        mri_mask=mri_mask,
-                        hist_mask=transformed_hist_mask,
-                        out_path=hist_out_path,
-                    ),
-                    "mri_key": mri_key,
-                    "hist_name": slice_details["img"].path.name,
-                }
-            )
+                # plots["checkerboard"].append(
+                #     {
+                # "img":
+                create_checkerboard(
+                    mri_processed,
+                    transformed_original_hist,
+                    squares=(16, 16),
+                    mri_mask=mri_mask,
+                    hist_mask=transformed_hist_mask,
+                    out_path=hist_out_path,
+                ),
+                # "mri_key": mri_key,
+                # "hist_name": slice_details["img"].path.name,
+            #     }
+            # )
 
             create_hist_volume({mri_key: registered["warpedmovout"]}, dicom_params, out_path=hist_out_path)
 
@@ -323,16 +326,14 @@ def run_registration(
             map_group,
             dicom_params,
             out_path=base_out_path / "sih_maps" / map_key / "combined.nii.gz",
-            interp="nearestNeighbor",
-            is_map=True,
+            interp="nearestNeighbor"
         )
         for mri_key, map_img in map_group.items():
             create_hist_volume(
                 {mri_key: map_img},
                 dicom_params,
                 out_path=base_out_path / "sih_maps" / map_key / f"{mri_key}-{map_key}.nii.gz",
-                interp="nearestNeighbor",
-                is_map=True,
+                interp="nearestNeighbor"
             )
             # mri_img.to_file(str(base_out_path / map_key / f"{mri_key}-{map_key}.nii.gz"))
 
@@ -509,20 +510,20 @@ def build_hist_slices(
 # These contain paths to the images, as well as allow customisation of the registration workflow, in order to perform
 # the tests in Results
 if __name__ == "__main__":
-    dicom23p = build_dicom_params(Path("23R_SC2"), slices_idx=[8, 9])
-    dicom23r = build_dicom_params(Path("23R_SC2"), slices_idx=[6, 7])
-    dicom23s = build_dicom_params(Path("23S_SC2"), slices_idx=[6, 7])
-    dicom23t = build_dicom_params(Path("23T_SC2"), slices_idx=[7, 8])
-    dicom23u = build_dicom_params(Path("23U_SC2"), slices_idx=[8, 9])
-    dicom23w = build_dicom_params(Path("23W_SC2"), slices_idx=[7, 8])
-    dicom23x = build_dicom_params(Path("23X_SC2"), slices_idx=[7, 8])
-    dicom23y = build_dicom_params(Path("23Y_SC2"), slices_idx=[7, 8])
+    # dicom23p = build_dicom_params(Path("MRI") / "23P_SC2", slices_idx=[8, 9])
+    dicom23r = build_dicom_params(Path("MRI") / "23R_SC2", slices_idx=[6, 7])
+    dicom23s = build_dicom_params(Path("MRI") / "23S_SC2", slices_idx=[6, 7])
+    dicom23t = build_dicom_params(Path("MRI") / "23T_SC2", slices_idx=[7, 8])
+    dicom23u = build_dicom_params(Path("MRI") / "23U_SC2", slices_idx=[8, 9])
+    dicom23w = build_dicom_params(Path("MRI") / "23W_SC2", slices_idx=[7, 8])
+    dicom23x = build_dicom_params(Path("MRI") / "23X_SC2", slices_idx=[7, 8])
+    dicom23y = build_dicom_params(Path("MRI") / "23Y_SC2", slices_idx=[7, 8])
 
     base_hist: HistParams = {
         "greyscale_type": "mean",
         "loc_within": False,
         "fixed_image": 2,
-        "split_multiple_register_to": False,
+        "split_multiple_register_to": True,
     }  # type: ignore
 
     # base_hist2 = HistParamsDC()
@@ -625,7 +626,7 @@ if __name__ == "__main__":
         } | replace_dict
 
     all_params: dict[str, AnimalParams] = {
-        "23P": {"mri": dicom23p, "hist": hist23p},
+        # "23P": {"mri": dicom23p, "hist": hist23p},
         "23R": {"mri": dicom23r, "hist": hist23r},
         "23S": {"mri": dicom23s, "hist": hist23s},
         "23T": {"mri": dicom23t, "hist": hist23t},
@@ -638,66 +639,77 @@ if __name__ == "__main__":
     @func_timer
     async def main():
         tasks = []
-        for animal, param in all_params.items():
+        # for animal, param in all_params.items():
 
-            # Components
-            for mode in ["h&e", "mean", {"red", "blue"}]:
-                param["hist"]["greyscale_type"] = mode
+        #     #     # Components
+        #         for mode in ["h&e", "mean", {"red", "blue"}]:
+        #             param["hist"]["greyscale_type"] = mode
 
-                string_dict = {
-                    "h&e": "H&E",
-                    "mean": "RGB Mean",
-                }
-                if mode == {"red", "blue"}:
-                    pretty_string = "RB Mean"
-                else:
-                    pretty_string = string_dict[mode]
+        #             string_dict = {
+        #                 "h&e": "H&E",
+        #                 "mean": "RGB Mean",
+        #             }
+        #             if mode == {"red", "blue"}:
+        #                 pretty_string = "RB Mean"
+        #             else:
+        #                 pretty_string = string_dict[mode]
 
-                tasks.append(
-                    run_registration_in_thread(
-                        dicom_params=param["mri"],
-                        hist_params=param["hist"],
-                        reg_params=reg_params({"out_prefix": Path("components") / animal / pretty_string}),
-                        run_name=f"{animal} {pretty_string}",
-                        strict=False,
-                    )
-                )
+        #             tasks.append(
+        #                 run_registration_in_thread(
+        #                     dicom_params=param["mri"],
+        #                     hist_params=param["hist"],
+        #                     reg_params=reg_params({"out_prefix": Path("components") / animal / pretty_string}),
+        #                     run_name=f"{animal} {pretty_string}",
+        #                     strict=False,
+        #                 )
+        #             )
 
-            # Registration type
-            for reg in [
-                "Rigid",
-                "Affine",
-                "SyNOnly",
-                "SyN",
-                "SyNRA",
-            ]:
+        #         # Registration type
+        #         for reg in [
+        #             "Rigid",
+        #             "Affine",
+        #             "SyNOnly",
+        #             "SyN",
+        #             "SyNRA",
+        #         ]:
 
-                tasks.append(
-                    run_registration_in_thread(
-                        dicom_params=param["mri"],
-                        hist_params=param["hist"],
-                        reg_params=reg_params({"out_prefix": Path("reg_types") / animal / reg, "type_of_transform": reg}),
-                        run_name=f"{animal} {reg}",
-                        strict=False,
-                    )
-                )
+        #             tasks.append(
+        #                 run_registration_in_thread(
+        #                     dicom_params=param["mri"],
+        #                     hist_params=param["hist"],
+        #                     reg_params=reg_params({"out_prefix": Path("reg_types") / animal / reg, "type_of_transform": reg}),
+        #                     run_name=f"{animal} {reg}",
+        #                     strict=False,
+        #                 )
+        #             )
 
-            # MRI allocation
-            for mri in ["mri_1", "mri_2"]:
+        #     # MRI allocation
+        #     for mri in ["mri_1", "mri_2"]:
 
-                hist_params = deepcopy(param["hist"])
-                for slices in hist_params["slices"]:
-                    slices["register_to"] = mri
+        #         hist_params = deepcopy(param["hist"])
+        #         for slices in hist_params["slices"]:
+        #             slices["register_to"] = mri
 
-                tasks.append(
-                    run_registration_in_thread(
-                        dicom_params=param["mri"],
-                        hist_params=hist_params,
-                        reg_params=reg_params({"out_prefix": Path("allocation") / animal / mri}),
-                        run_name=f"{animal} {mri}",
-                        strict=False,
-                    )
-                )
+        #         tasks.append(
+        #             run_registration_in_thread(
+        #                 dicom_params=param["mri"],
+        #                 hist_params=hist_params,
+        #                 reg_params=reg_params({"out_prefix": Path("allocation") / animal / mri}),
+        #                 run_name=f"{animal} {mri}",
+        #                 strict=False,
+        #             )
+        #         )
+
+        y = {"mri": all_params["23Y"]["mri"], "hist": all_params["23Y"]["hist"]}
+        tasks.append(
+            run_registration_in_thread(
+                dicom_params=y["mri"],
+                hist_params=y["hist"],
+                reg_params=reg_params({"out_prefix": Path("allocation") / "23Y" / "SyN", "type_of_transform": "SyN"}),
+                run_name=f"23Y SyN",
+                strict=False,
+            )
+        )
 
         await run_many_registrations(tasks, 2)
 

@@ -38,10 +38,16 @@ def create_subplot_grid(n: int, orientation: Literal["wide", "long"] = "wide") -
 
 
 def pretty_mri_key(key: str) -> str:
+    """
+    "mri_1" -> "MRI 1"
+    """
     return key.replace("_", " ").upper()
 
 
 def animal_id_from_filename(filename: Path | str) -> str:
+    """
+    "240920_GCBA_23p_HnE20x_S1.svs-cell count mask.tif" -> "23P"
+    """
     if not filename:
         return ""
 
@@ -55,6 +61,9 @@ def animal_id_from_filename(filename: Path | str) -> str:
 
 
 def slice_number_from_filename(filename: Path | str) -> str:
+    """
+    "240920_GCBA_23p_HnE20x_S1.svs-cell count mask.tif" -> "S1"
+    """
     slide = re.search("S\\d", str(filename))
     if slide:
         slide = slide.group()
@@ -64,13 +73,15 @@ def slice_number_from_filename(filename: Path | str) -> str:
 
 
 def pretty_hist_filename(filename: Path | str) -> str:
+    """
+    "240920_GCBA_23p_HnE20x_S1.svs-cell count mask.tif" -> "23P-1"
+    """
     if not filename:
         return ""
 
     filename = str(filename)
 
     animal = animal_id_from_filename(filename)
-
     slide = slice_number_from_filename(filename)
 
     return f"{animal}-{slide[1:]}"
@@ -139,9 +150,11 @@ def multi_index_to_str(midx: pd.Index, sep="_"):
 
 
 class ANTsPrettyPrinter(pprint.PrettyPrinter):
+    """
+    Return a more readable string for Ants images in print statements
+    """
     def format(self, object, context, maxlevels, level):
         if type(object).__name__ == "ANTsImage":
-            # Return a more readable string for Ants images
             # (repr_string, isreadable, isrecursive)
             return "<ANTsImage>", True, False
 
